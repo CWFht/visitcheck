@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>방문고객 기록 v3</title>
+  <title>방문고객 기록 v5</title>
   <style>
     :root{
       --bg:#f4f6fb;
@@ -357,6 +357,27 @@
       box-shadow:0 14px 30px rgba(0,0,0,.25);
     }
     .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+    .connection-warning{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      margin:0 0 14px;
+      padding:14px 15px;
+      border-radius:18px;
+      border:1px solid #fed7aa;
+      background:#fff7ed;
+      color:#9a3412;
+      box-shadow:0 8px 18px rgba(154,52,18,.06);
+      line-height:1.45;
+    }
+    .connection-warning strong{font-size:14px}
+    .connection-warning span{font-size:13px}
+    .connection-warning code{
+      padding:2px 6px;
+      border-radius:8px;
+      background:#ffedd5;
+      font-weight:850;
+    }
     .footer-note{color:#667085;font-size:12px;line-height:1.5;text-align:center;margin-top:18px}
     @media (max-width:760px){
       .wrap{padding:18px 12px 30px}
@@ -393,10 +414,15 @@
       <button class="big-button" id="checkInBtn">입점 등록</button>
       <div class="sub-actions">
         <button class="secondary" id="refreshBtn">새로고침</button>
-        <button class="secondary" id="exportCsvBtn">오늘 데이터 CSV 다운로드</button>
-        <button class="danger" id="resetLocalBtn">로컬 테스트 초기화</button>
+        <button class="secondary" id="exportCsvBtn">엑셀양식 CSV 다운로드</button>
+        <button class="danger" id="resetTodayBtn">오늘 기록 전체 초기화</button>
       </div>
     </section>
+
+    <div class="connection-warning" id="connectionWarning" style="display:none">
+      <strong>Google Sheets 연결이 필요합니다.</strong>
+      <span>여러 기기에서 하나로 누적하려면 index.html의 <code>API_URL</code>에 Apps Script 웹 앱 URL을 넣어야 합니다. URL이 비어 있으면 입점/퇴점 저장이 진행되지 않습니다.</span>
+    </div>
 
     <section class="grid" aria-label="오늘 요약">
       <div class="stat">
@@ -478,8 +504,8 @@
     </section>
 
     <p class="footer-note">
-      API_URL을 비워두면 로컬 테스트 모드로 작동합니다.<br>
-      Google Apps Script 웹 앱 URL을 넣으면 여러 기기에서 같은 Google Sheets에 누적됩니다.
+      v5는 Google Sheets를 기준으로 모든 기기의 입점·퇴점 기록을 하나로 누적합니다.<br>
+      API_URL을 입력하지 않으면 기기별 로컬 저장을 사용하지 않고, 저장 버튼을 막습니다.
     </p>
   </div>
 
@@ -559,12 +585,13 @@
   <script>
     /**
      * Google Apps Script 웹 앱 URL을 여기에 붙여넣으세요.
-     * 예: const API_URL = "https://script.google.com/macros/s/배포ID/exec";
-     * 비워두면 이 브라우저에서만 저장되는 로컬 테스트 모드로 작동합니다.
+     * 예: const API_URL = "https://script.google.com/macros/s/AKfycbzlr4lrsk5ONv3dPLjDsMDo10fQ9ntUeRY3gBGSS9nQ1dmQODwecNHvami2KMfi2xHq6Q/exec";
+     * 여러 기기에서 같은 데이터로 누적하려면 반드시 API_URL을 입력해야 합니다.
+     * v5부터 API_URL이 비어 있으면 입점/퇴점 저장을 막습니다.
      */
-    const API_URL = "";
+    const API_URL = "https://script.google.com/macros/s/AKfycbzlr4lrsk5ONv3dPLjDsMDo10fQ9ntUeRY3gBGSS9nQ1dmQODwecNHvami2KMfi2xHq6Q/exec";
     const BRANCH_NAME = "삼천포점";
-    const LOCAL_KEY = "himart_visitor_tracker_v3";
+    const LOCAL_KEY = "himart_visitor_tracker_v5";
 
     const itemOptions = [
       "냉장고","김치냉장고","세탁건조기","의류관리기","정수기",
@@ -617,7 +644,7 @@
       setTimeout(() => toast.classList.remove("show"), 1500);
     }
     function setLoading(isLoading){
-      ["checkInBtn","refreshBtn","exportCsvBtn"].forEach(id => $(id).disabled = isLoading);
+      ["checkInBtn","refreshBtn","exportCsvBtn","resetTodayBtn"].forEach(id => $(id).disabled = isLoading);
     }
 
     function jsonp(action, params = {}){
@@ -765,7 +792,10 @@
       return Promise.reject(new Error("알 수 없는 로컬 액션입니다."));
     }
     function api(action, params = {}){
-      return isConnected() ? jsonp(action, params) : localApi(action, params);
+      if(!isConnected()){
+        return Promise.reject(new Error("API_URL이 비어 있습니다. Google Apps Script 웹 앱 URL을 index.html에 입력해야 여러 기기에서 누적됩니다."));
+      }
+      return jsonp(action, params);
     }
 
     function buildItemGrid(){
@@ -788,6 +818,17 @@
     }
 
     async function refresh(){
+      if(!isConnected()){
+        state = {
+          branch: BRANCH_NAME,
+          records: [],
+          active: [],
+          summary: { total:0, closed:0, sold:0, conversion:0, reasonCounts:{}, itemCounts:{} }
+        };
+        render();
+        return;
+      }
+
       try{
         setLoading(true);
         const res = await api("summary");
@@ -800,6 +841,10 @@
       }
     }
     async function checkIn(){
+      if(!isConnected()){
+        alert("Google Sheets 연결 후 사용할 수 있습니다. index.html의 API_URL에 Apps Script 웹 앱 URL을 넣어주세요.");
+        return;
+      }
       try{
         setLoading(true);
         await api("checkin", { userAgent:navigator.userAgent });
@@ -812,6 +857,10 @@
       }
     }
     async function cancelVisit(id){
+      if(!isConnected()){
+        alert("Google Sheets 연결 후 사용할 수 있습니다. index.html의 API_URL을 확인해주세요.");
+        return;
+      }
       if(!confirm("실수로 등록한 입점을 취소할까요?")) return;
       try{
         setLoading(true);
@@ -869,6 +918,11 @@
     }
     async function submitCheckout(event){
       event.preventDefault();
+
+      if(!isConnected()){
+        alert("Google Sheets 연결 후 사용할 수 있습니다. index.html의 API_URL을 확인해주세요.");
+        return;
+      }
 
       const id = $("selectedVisitId").value;
       const selectedItems = [...document.querySelectorAll("input[name='items']:checked")].map(input => input.value);
@@ -1010,9 +1064,10 @@
     function render(){
       $("todayLabel").textContent = formatDateLabel();
       $("branchLabel").textContent = state.branch || BRANCH_NAME;
-      $("modeLabel").textContent = isConnected() ? "Google Sheets 연결" : "로컬 테스트";
+      $("modeLabel").textContent = isConnected() ? "Google Sheets 실시간 누적" : "API URL 필요";
       $("modeLabel").className = `pill ${isConnected() ? "connected" : "local"}`;
-      $("resetLocalBtn").style.display = isConnected() ? "none" : "block";
+      $("connectionWarning").style.display = isConnected() ? "none" : "flex";
+      $("resetTodayBtn").style.display = isConnected() ? "block" : "none";
 
       renderActive();
       renderTimeline();
@@ -1023,47 +1078,98 @@
       const text = String(value ?? "");
       return `"${text.replaceAll('"','""')}"`;
     }
-    function exportCSV(){
-      const records = state.records || [];
-      const headers = ["날짜","구분","입점시간","퇴점시간","체류시간","상담품목","구매여부","미구매사유","기타사유","상태","메모"];
-      const rows = records.map(r => [
-        formatDateLabel(),
-        r.visitNo,
-        formatDateTime(r.checkInAt),
-        formatDateTime(r.checkOutAt),
-        durationText(r.checkInAt, r.checkOutAt),
-        (r.items || []).join(" / "),
-        r.purchaseYN,
-        r.reason,
-        r.otherReason,
-        r.status,
-        r.memo
-      ]);
+    function formatCsvMonthDay(dateKey){
+      const parts = String(dateKey || todayKey()).split("-");
+      if(parts.length !== 3) return dateKey || "";
+      return `${parts[1]}월 ${parts[2]}일`;
+    }
 
-      const csv = "\uFEFF" + [headers, ...rows].map(row => row.map(csvEscape).join(",")).join("\n");
+    function formatCsvKoreanTime(iso){
+      if(!iso) return "";
+      const d = new Date(iso);
+      if(Number.isNaN(d.getTime())) return "";
+      return `${pad(d.getHours())}시 ${pad(d.getMinutes())}분`;
+    }
+
+    function formatCsvReason(r){
+      if(!r || r.purchaseYN !== "N") return "";
+      if(r.reason === "기타" && r.otherReason) return `기타: ${r.otherReason}`;
+      return r.reason || "";
+    }
+
+    function exportCSV(){
+      const records = (state.records || []).slice().sort((a,b) => new Date(a.checkInAt) - new Date(b.checkInAt));
+      const branchName = state.branch || BRANCH_NAME;
+      const rowCount = Math.max(33, records.length);
+
+      const rows = [
+        ["■ 시간대별 방문고객 현황", "", "", "", "", "", "", "점명 :", branchName, ""],
+        ["", "", "", "", "", "", "", "", "", ""],
+        ["구분", "날짜", "방문시간", "상담품목", "", "", "", "", "구매여부\n(Y/N)", "미구매사유"]
+      ];
+
+      for(let i = 0; i < rowCount; i++){
+        const r = records[i];
+        const items = r && Array.isArray(r.items) ? r.items.slice(0, 5) : [];
+        while(items.length < 5) items.push("");
+
+        rows.push([
+          i + 1,
+          r ? formatCsvMonthDay(r.date) : "",
+          r ? formatCsvKoreanTime(r.checkInAt) : "",
+          items[0],
+          items[1],
+          items[2],
+          items[3],
+          items[4],
+          r ? (r.purchaseYN || "") : "",
+          r ? formatCsvReason(r) : ""
+        ]);
+      }
+
+      const csv = "\uFEFF" + rows.map(row => row.map(csvEscape).join(",")).join("\n");
       const blob = new Blob([csv], { type:"text/csv;charset=utf-8" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `방문고객기록_${todayKey()}.csv`;
+      a.download = `시간대별_방문고객현황_${branchName}_${todayKey()}.csv`;
       document.body.appendChild(a);
       a.click();
       a.remove();
       URL.revokeObjectURL(url);
     }
-    function resetLocal(){
-      if(isConnected()) return;
-      if(!confirm("이 브라우저의 로컬 테스트 데이터를 초기화할까요?")) return;
-      localStorage.removeItem(LOCAL_KEY);
-      refresh();
-      showToast("로컬 테스트 데이터 초기화 완료");
+    async function resetToday(){
+      if(!isConnected()){
+        alert("Google Sheets 연결 후 사용할 수 있습니다. index.html의 API_URL을 확인해주세요.");
+        return;
+      }
+
+      const first = confirm("오늘 기록을 전체 초기화할까요?\\n모든 기기에서 오늘 누적 기록이 사라지고, 구글시트의 오늘 행도 초기화됩니다.");
+      if(!first) return;
+
+      const keyword = prompt("실수 방지를 위해 '초기화'라고 입력해주세요.");
+      if(keyword !== "초기화"){
+        showToast("초기화가 취소되었습니다.");
+        return;
+      }
+
+      try{
+        setLoading(true);
+        await api("resetToday");
+        await refresh();
+        showToast("오늘 기록 전체 초기화 완료");
+      }catch(err){
+        alert(err.message);
+      }finally{
+        setLoading(false);
+      }
     }
 
     buildItemGrid();
     $("checkInBtn").addEventListener("click", checkIn);
     $("refreshBtn").addEventListener("click", refresh);
     $("exportCsvBtn").addEventListener("click", exportCSV);
-    $("resetLocalBtn").addEventListener("click", resetLocal);
+    $("resetTodayBtn").addEventListener("click", resetToday);
     $("checkoutForm").addEventListener("submit", submitCheckout);
     $("closeDialogBtn").addEventListener("click", closeCheckout);
     $("cancelCheckoutBtn").addEventListener("click", closeCheckout);
@@ -1073,7 +1179,7 @@
     $("otherItem").addEventListener("input", syncOtherItem);
 
     refresh();
-    setInterval(() => refresh(), 60000);
+    setInterval(() => refresh(), 20000);
   </script>
 </body>
 </html>
