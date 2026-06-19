@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>방문고객 기록 v9</title>
+  <title>방문고객 기록 v10</title>
   <style>
     :root{
       --bg:#f4f6fb;
@@ -531,7 +531,7 @@
     </section>
 
     <p class="footer-note">
-      v9는 Google Sheets를 기준으로 모든 기기의 입점·퇴점 기록을 하나로 누적합니다.<br>
+      v10은 Google Sheets를 기준으로 모든 기기의 입점·퇴점 기록을 하나로 누적합니다.<br>
       API_URL을 입력하지 않으면 기기별 로컬 저장을 사용하지 않고, 저장 버튼을 막습니다.
     </p>
   </div>
@@ -638,7 +638,7 @@
     }
 
     const BRANCH_NAME = "삼천포점";
-    const LOCAL_KEY = "himart_visitor_tracker_v9";
+    const LOCAL_KEY = "himart_visitor_tracker_v10";
 
     const itemOptions = [
       "냉장고","김치냉장고","세탁건조기","의류관리기","정수기",
@@ -891,7 +891,8 @@
         const res = await api("summary");
         state = res.data;
         render();
-        setStatus("ok", "Google Sheets 연결 완료. 모든 기기에서 같은 기록으로 누적됩니다.");
+        const activeCount = (state.active || []).length;
+        setStatus("ok", `Google Sheets 연결 완료. 현재 매장 방문 중 ${activeCount}명`);
       }catch(err){
         setStatus("err", "연결 실패: " + err.message);
         alert(err.message);
@@ -923,6 +924,7 @@
         syncing: true
       };
 
+      // 먼저 화면에 즉시 표시
       state.records = [...(state.records || []), tempRecord];
       state.active = [...(state.active || []), tempRecord];
       state.summary = {
@@ -931,17 +933,40 @@
       };
       render();
       showToast("입점 등록 중입니다.");
-      setStatus("warn", "입점 기록을 Google Sheets에 저장하는 중입니다.");
+      setStatus("warn", "입점 기록을 Google Sheets에 저장하고, 실제 반영 여부를 확인하는 중입니다.");
 
       try{
         setLoading(true);
         const res = await api("checkin", { userAgent:navigator.userAgent });
-        await refresh();
-        showToast(`입점 ${res?.data?.visitNo || ""}번 등록 완료`);
-        setStatus("ok", "입점 등록 완료. 현재 입점 리스트에 반영되었습니다.");
+        const data = res?.data || {};
+
+        if(!data.persisted){
+          throw new Error(data.message || "Apps Script가 저장 성공을 확인하지 못했습니다. 배포 버전과 SPREADSHEET_ID를 확인해주세요.");
+        }
+
+        if(data.summary && Array.isArray(data.summary.records)){
+          state = data.summary;
+          render();
+        }else if(data.record){
+          const actual = data.record;
+          state.records = (state.records || []).map(r => r.id === tempId ? actual : r);
+          state.active = (state.active || []).map(r => r.id === tempId ? actual : r);
+          render();
+        }else{
+          await refresh();
+        }
+
+        const activeCount = (state.active || []).length;
+        showToast(`입점 ${data.visitNo || ""}번 등록 완료`);
+        setStatus("ok", `Google Sheets 저장 확인 완료. 현재 매장 방문 중 ${activeCount}명`);
       }catch(err){
+        // 저장이 실제 확인되지 않으면 화면에서도 제거
         state.records = (state.records || []).filter(r => r.id !== tempId);
         state.active = (state.active || []).filter(r => r.id !== tempId);
+        state.summary = {
+          ...(state.summary || {}),
+          total: Math.max(0, (state.summary?.total || 1) - 1)
+        };
         render();
         setStatus("err", "입점 등록 실패: " + err.message);
         alert("입점 등록 실패: " + err.message);
