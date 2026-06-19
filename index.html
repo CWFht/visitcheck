@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>방문고객 기록 v8</title>
+  <title>방문고객 기록 v9</title>
   <style>
     :root{
       --bg:#f4f6fb;
@@ -357,6 +357,32 @@
       box-shadow:0 14px 30px rgba(0,0,0,.25);
     }
     .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+    .sync-status{
+      margin-top:12px;
+      padding:11px 13px;
+      border-radius:15px;
+      background:#f8fafc;
+      border:1px solid #e4e7ec;
+      color:#475467;
+      font-size:13px;
+      font-weight:750;
+      line-height:1.45;
+    }
+    .sync-status.ok{
+      background:#f0fdf4;
+      border-color:#bbf7d0;
+      color:#166534;
+    }
+    .sync-status.warn{
+      background:#fffbeb;
+      border-color:#fde68a;
+      color:#92400e;
+    }
+    .sync-status.err{
+      background:#fff5f5;
+      border-color:#fecaca;
+      color:#991b1b;
+    }
     .connection-warning{
       display:flex;
       flex-direction:column;
@@ -417,6 +443,7 @@
         <button class="secondary" id="exportCsvBtn">엑셀양식 CSV 다운로드</button>
         <button class="danger" id="resetTodayBtn">오늘 기록 전체 초기화</button>
       </div>
+      <div class="sync-status" id="syncStatus">연결 상태 확인 중입니다.</div>
     </section>
 
     <div class="connection-warning" id="connectionWarning" style="display:none">
@@ -504,7 +531,7 @@
     </section>
 
     <p class="footer-note">
-      v5는 Google Sheets를 기준으로 모든 기기의 입점·퇴점 기록을 하나로 누적합니다.<br>
+      v9는 Google Sheets를 기준으로 모든 기기의 입점·퇴점 기록을 하나로 누적합니다.<br>
       API_URL을 입력하지 않으면 기기별 로컬 저장을 사용하지 않고, 저장 버튼을 막습니다.
     </p>
   </div>
@@ -611,7 +638,7 @@
     }
 
     const BRANCH_NAME = "삼천포점";
-    const LOCAL_KEY = "himart_visitor_tracker_v8";
+    const LOCAL_KEY = "himart_visitor_tracker_v9";
 
     const itemOptions = [
       "냉장고","김치냉장고","세탁건조기","의류관리기","정수기",
@@ -660,6 +687,12 @@
       toast.classList.add("show");
       setTimeout(() => toast.classList.remove("show"), 1500);
     }
+    function setStatus(type, text){
+      const el = $("syncStatus");
+      if(!el) return;
+      el.className = `sync-status ${type || ""}`.trim();
+      el.textContent = text;
+    }
     function setLoading(isLoading){
       ["checkInBtn","refreshBtn","exportCsvBtn","resetTodayBtn"].forEach(id => $(id).disabled = isLoading);
     }
@@ -673,6 +706,7 @@
         url.searchParams.set("callback", callback);
         url.searchParams.set("action", action);
         url.searchParams.set("branch", BRANCH_NAME);
+        url.searchParams.set("_t", Date.now());
 
         Object.entries(params).forEach(([key, value]) => {
           if(Array.isArray(value)) value = value.join("|");
@@ -681,8 +715,8 @@
 
         const timer = setTimeout(() => {
           cleanup();
-          reject(new Error("응답 시간이 초과되었습니다."));
-        }, 15000);
+          reject(new Error("Apps Script 응답 시간이 초과되었습니다. 배포 권한 또는 웹 앱 URL을 확인해주세요."));
+        }, 20000);
 
         function cleanup(){
           clearTimeout(timer);
@@ -701,6 +735,7 @@
           reject(new Error("Apps Script 연결에 실패했습니다."));
         };
 
+        script.async = true;
         script.src = url.toString();
         document.body.appendChild(script);
       });
@@ -846,15 +881,19 @@
           summary: { total:0, closed:0, sold:0, conversion:0, reasonCounts:{}, itemCounts:{} }
         };
         render();
+        setStatus("warn", "GitHub Pages 주소가 아니거나 외부 연결이 차단된 상태입니다. 실제 GitHub Pages 주소에서 테스트해주세요.");
         return;
       }
 
       try{
         setLoading(true);
+        setStatus("warn", "Google Sheets 데이터를 불러오는 중입니다.");
         const res = await api("summary");
         state = res.data;
         render();
+        setStatus("ok", "Google Sheets 연결 완료. 모든 기기에서 같은 기록으로 누적됩니다.");
       }catch(err){
+        setStatus("err", "연결 실패: " + err.message);
         alert(err.message);
       }finally{
         setLoading(false);
@@ -862,16 +901,50 @@
     }
     async function checkIn(){
       if(!canUseNetwork()){
-        alert("ChatGPT 미리보기에서는 저장을 막았습니다. GitHub Pages 주소에서 접속하면 Google Sheets에 정상 누적됩니다.");
+        setStatus("err", "저장 불가: GitHub Pages 주소에서 접속했는지 확인해주세요.");
+        alert("ChatGPT 미리보기나 로컬 파일에서는 저장을 막았습니다. GitHub Pages 주소에서 접속하면 Google Sheets에 정상 누적됩니다.");
         return;
       }
+
+      const tempId = `temp_${Date.now()}`;
+      const tempRecord = {
+        id: tempId,
+        date: todayKey(),
+        visitNo: (state.records || []).length + 1,
+        branch: BRANCH_NAME,
+        checkInAt: nowISO(),
+        checkOutAt: "",
+        status: "방문중",
+        items: [],
+        purchaseYN: "",
+        reason: "",
+        otherReason: "",
+        memo: "",
+        syncing: true
+      };
+
+      state.records = [...(state.records || []), tempRecord];
+      state.active = [...(state.active || []), tempRecord];
+      state.summary = {
+        ...(state.summary || {}),
+        total: (state.summary?.total || 0) + 1
+      };
+      render();
+      showToast("입점 등록 중입니다.");
+      setStatus("warn", "입점 기록을 Google Sheets에 저장하는 중입니다.");
+
       try{
         setLoading(true);
-        await api("checkin", { userAgent:navigator.userAgent });
+        const res = await api("checkin", { userAgent:navigator.userAgent });
         await refresh();
-        showToast("입점 등록 완료");
+        showToast(`입점 ${res?.data?.visitNo || ""}번 등록 완료`);
+        setStatus("ok", "입점 등록 완료. 현재 입점 리스트에 반영되었습니다.");
       }catch(err){
-        alert(err.message);
+        state.records = (state.records || []).filter(r => r.id !== tempId);
+        state.active = (state.active || []).filter(r => r.id !== tempId);
+        render();
+        setStatus("err", "입점 등록 실패: " + err.message);
+        alert("입점 등록 실패: " + err.message);
       }finally{
         setLoading(false);
       }
@@ -1088,6 +1161,7 @@
       $("modeLabel").className = `pill ${canUseNetwork() ? "connected" : "local"}`;
       $("connectionWarning").style.display = canUseNetwork() ? "none" : "flex";
       $("resetTodayBtn").style.display = canUseNetwork() ? "block" : "none";
+      if(!canUseNetwork()) setStatus("warn", "GitHub Pages 주소에서 접속해야 Google Sheets에 저장됩니다.");
 
       renderActive();
       renderTimeline();
