@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>방문고객 기록 v5</title>
+  <title>방문고객 기록 v7</title>
   <style>
     :root{
       --bg:#f4f6fb;
@@ -420,8 +420,8 @@
     </section>
 
     <div class="connection-warning" id="connectionWarning" style="display:none">
-      <strong>Google Sheets 연결이 필요합니다.</strong>
-      <span>여러 기기에서 하나로 누적하려면 index.html의 <code>API_URL</code>에 Apps Script 웹 앱 URL을 넣어야 합니다. URL이 비어 있으면 입점/퇴점 저장이 진행되지 않습니다.</span>
+      <strong>미리보기에서는 외부 연결을 차단했습니다.</strong>
+      <span>ChatGPT 안에서 파일을 미리보기하면 네트워크 허용 팝업이 반복될 수 있어 연결을 막았습니다. GitHub Pages 주소에서 접속하면 Google Sheets에 정상 누적됩니다.</span>
     </div>
 
     <section class="grid" aria-label="오늘 요약">
@@ -585,11 +585,33 @@
   <script>
     /**
      * Google Apps Script 웹 앱 URL을 여기에 붙여넣으세요.
-     * 예: const API_URL = "https://script.google.com/macros/s/AKfycbzlr4lrsk5ONv3dPLjDsMDo10fQ9ntUeRY3gBGSS9nQ1dmQODwecNHvami2KMfi2xHq6Q/exec";
+     * 예: const API_URL = "https://script.google.com/macros/s/AKfycbywGt9SILd9XCctj9cWk0lO9CoGQDOEYJKrWQfAtRSH2EWh9SLoSq8A5-qSCNTKx9WmYg/exec";
+
+    /*
+     * ChatGPT 파일 미리보기에서는 외부 네트워크 접근 확인창이 반복해서 뜰 수 있습니다.
+     * 그래서 ChatGPT/로컬 미리보기에서는 연결을 막고, 실제 배포된 HTTPS 페이지에서는 Google Apps Script에 자동 연결합니다.
+     * 실제 GitHub Pages 주소에서는 정상 누적되고, ChatGPT 미리보기에서는 연결을 시도하지 않습니다.
+     */
+    function isPreviewOrLocalPage(){
+      const host = window.location.hostname || "";
+      const protocol = window.location.protocol || "";
+
+      if(protocol === "file:" || protocol === "blob:") return true;
+      if(host.includes("chatgpt.com")) return true;
+      if(host.includes("openai.com")) return true;
+      if(host.includes("sandbox")) return true;
+      if(host === "localhost" || host === "127.0.0.1") return true;
+
+      return false;
+    }
+
+    function canUseNetwork(){
+      return isConnected() && !isPreviewOrLocalPage();
+    }
      * 여러 기기에서 같은 데이터로 누적하려면 반드시 API_URL을 입력해야 합니다.
      * v5부터 API_URL이 비어 있으면 입점/퇴점 저장을 막습니다.
      */
-    const API_URL = "https://script.google.com/macros/s/AKfycbzlr4lrsk5ONv3dPLjDsMDo10fQ9ntUeRY3gBGSS9nQ1dmQODwecNHvami2KMfi2xHq6Q/exec";
+    const API_URL = "https://script.google.com/macros/s/AKfycbywGt9SILd9XCctj9cWk0lO9CoGQDOEYJKrWQfAtRSH2EWh9SLoSq8A5-qSCNTKx9WmYg/exec";
     const BRANCH_NAME = "삼천포점";
     const LOCAL_KEY = "himart_visitor_tracker_v5";
 
@@ -795,6 +817,9 @@
       if(!isConnected()){
         return Promise.reject(new Error("API_URL이 비어 있습니다. Google Apps Script 웹 앱 URL을 index.html에 입력해야 여러 기기에서 누적됩니다."));
       }
+      if(isPreviewOrLocalPage()){
+        return Promise.reject(new Error("ChatGPT 미리보기나 로컬 파일에서는 외부 연결을 막았습니다. GitHub Pages 주소에서 접속하면 정상 작동합니다."));
+      }
       return jsonp(action, params);
     }
 
@@ -818,7 +843,7 @@
     }
 
     async function refresh(){
-      if(!isConnected()){
+      if(!canUseNetwork()){
         state = {
           branch: BRANCH_NAME,
           records: [],
@@ -841,8 +866,8 @@
       }
     }
     async function checkIn(){
-      if(!isConnected()){
-        alert("Google Sheets 연결 후 사용할 수 있습니다. index.html의 API_URL에 Apps Script 웹 앱 URL을 넣어주세요.");
+      if(!canUseNetwork()){
+        alert("ChatGPT 미리보기에서는 저장을 막았습니다. GitHub Pages 주소에서 접속하면 Google Sheets에 정상 누적됩니다.");
         return;
       }
       try{
@@ -857,8 +882,8 @@
       }
     }
     async function cancelVisit(id){
-      if(!isConnected()){
-        alert("Google Sheets 연결 후 사용할 수 있습니다. index.html의 API_URL을 확인해주세요.");
+      if(!canUseNetwork()){
+        alert("ChatGPT 미리보기에서는 저장을 막았습니다. GitHub Pages 주소에서 접속하면 정상 작동합니다.");
         return;
       }
       if(!confirm("실수로 등록한 입점을 취소할까요?")) return;
@@ -919,8 +944,8 @@
     async function submitCheckout(event){
       event.preventDefault();
 
-      if(!isConnected()){
-        alert("Google Sheets 연결 후 사용할 수 있습니다. index.html의 API_URL을 확인해주세요.");
+      if(!canUseNetwork()){
+        alert("ChatGPT 미리보기에서는 저장을 막았습니다. GitHub Pages 주소에서 접속하면 정상 작동합니다.");
         return;
       }
 
@@ -1064,10 +1089,10 @@
     function render(){
       $("todayLabel").textContent = formatDateLabel();
       $("branchLabel").textContent = state.branch || BRANCH_NAME;
-      $("modeLabel").textContent = isConnected() ? "Google Sheets 실시간 누적" : "API URL 필요";
-      $("modeLabel").className = `pill ${isConnected() ? "connected" : "local"}`;
-      $("connectionWarning").style.display = isConnected() ? "none" : "flex";
-      $("resetTodayBtn").style.display = isConnected() ? "block" : "none";
+      $("modeLabel").textContent = canUseNetwork() ? "Google Sheets 실시간 누적" : (isConnected() ? "미리보기 연결 차단" : "API URL 필요");
+      $("modeLabel").className = `pill ${canUseNetwork() ? "connected" : "local"}`;
+      $("connectionWarning").style.display = canUseNetwork() ? "none" : "flex";
+      $("resetTodayBtn").style.display = canUseNetwork() ? "block" : "none";
 
       renderActive();
       renderTimeline();
@@ -1139,8 +1164,8 @@
       URL.revokeObjectURL(url);
     }
     async function resetToday(){
-      if(!isConnected()){
-        alert("Google Sheets 연결 후 사용할 수 있습니다. index.html의 API_URL을 확인해주세요.");
+      if(!canUseNetwork()){
+        alert("ChatGPT 미리보기에서는 초기화를 막았습니다. GitHub Pages 주소에서 접속하면 정상 작동합니다.");
         return;
       }
 
@@ -1179,7 +1204,9 @@
     $("otherItem").addEventListener("input", syncOtherItem);
 
     refresh();
-    setInterval(() => refresh(), 20000);
+    setInterval(() => {
+      if(canUseNetwork()) refresh();
+    }, 20000);
   </script>
 </body>
 </html>
