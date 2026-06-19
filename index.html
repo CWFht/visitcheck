@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>방문고객 기록 v7</title>
+  <title>방문고객 기록 v8</title>
   <style>
     :root{
       --bg:#f4f6fb;
@@ -583,15 +583,16 @@
   <div class="toast" id="toast">저장되었습니다.</div>
 
   <script>
-    /**
-     * Google Apps Script 웹 앱 URL을 여기에 붙여넣으세요.
-     * 예: const API_URL = "https://script.google.com/macros/s/AKfycbywGt9SILd9XCctj9cWk0lO9CoGQDOEYJKrWQfAtRSH2EWh9SLoSq8A5-qSCNTKx9WmYg/exec";
-
     /*
-     * ChatGPT 파일 미리보기에서는 외부 네트워크 접근 확인창이 반복해서 뜰 수 있습니다.
-     * 그래서 ChatGPT/로컬 미리보기에서는 연결을 막고, 실제 배포된 HTTPS 페이지에서는 Google Apps Script에 자동 연결합니다.
-     * 실제 GitHub Pages 주소에서는 정상 누적되고, ChatGPT 미리보기에서는 연결을 시도하지 않습니다.
+     * Google Apps Script 웹 앱 URL.
+     * 여러 기기에서 하나로 누적하려면 이 주소가 반드시 들어가 있어야 합니다.
+     * ChatGPT/로컬 미리보기에서는 외부 연결을 막고, 실제 배포된 HTTPS 페이지에서만 연결합니다.
      */
+    const API_URL = "https://script.google.com/macros/s/AKfycbywGt9SILd9XCctj9cWk0lO9CoGQDOEYJKrWQfAtRSH2EWh9SLoSq8A5-qSCNTKx9WmYg/exec";
+    function isConnected(){
+      return API_URL && API_URL.startsWith("https://script.google.com/");
+    }
+
     function isPreviewOrLocalPage(){
       const host = window.location.hostname || "";
       const protocol = window.location.protocol || "";
@@ -608,12 +609,9 @@
     function canUseNetwork(){
       return isConnected() && !isPreviewOrLocalPage();
     }
-     * 여러 기기에서 같은 데이터로 누적하려면 반드시 API_URL을 입력해야 합니다.
-     * v5부터 API_URL이 비어 있으면 입점/퇴점 저장을 막습니다.
-     */
-    const API_URL = "https://script.google.com/macros/s/AKfycbywGt9SILd9XCctj9cWk0lO9CoGQDOEYJKrWQfAtRSH2EWh9SLoSq8A5-qSCNTKx9WmYg/exec";
+
     const BRANCH_NAME = "삼천포점";
-    const LOCAL_KEY = "himart_visitor_tracker_v5";
+    const LOCAL_KEY = "himart_visitor_tracker_v8";
 
     const itemOptions = [
       "냉장고","김치냉장고","세탁건조기","의류관리기","정수기",
@@ -655,9 +653,6 @@
       const h = Math.floor(min / 60);
       const m = min % 60;
       return h ? `${h}시간 ${m}분` : `${m}분`;
-    }
-    function isConnected(){
-      return API_URL && API_URL.startsWith("https://script.google.com/");
     }
     function showToast(text){
       const toast = $("toast");
