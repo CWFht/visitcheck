@@ -1,0 +1,1079 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>방문고객 기록 v3</title>
+  <style>
+    :root{
+      --bg:#f4f6fb;
+      --card:#ffffff;
+      --text:#101828;
+      --muted:#667085;
+      --line:#e4e7ec;
+      --blue:#2563eb;
+      --blue2:#0f62fe;
+      --green:#16a34a;
+      --red:#dc2626;
+      --amber:#f59e0b;
+      --slate:#111827;
+      --shadow:0 12px 30px rgba(16,24,40,.08);
+      --radius:22px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans KR","Apple SD Gothic Neo",sans-serif;
+      background:linear-gradient(180deg,#eef3ff 0%,var(--bg) 42%,#f7f7f8 100%);
+      color:var(--text);
+    }
+    .wrap{
+      width:min(1100px,100%);
+      margin:0 auto;
+      padding:22px 16px 42px;
+    }
+    header{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:12px;
+      margin-bottom:16px;
+    }
+    h1{
+      font-size:27px;
+      line-height:1.16;
+      margin:0 0 7px;
+      letter-spacing:-.045em;
+    }
+    p{margin:0;color:var(--muted);font-size:14px;line-height:1.45}
+    .top-pills{
+      display:flex;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+      gap:8px;
+    }
+    .pill{
+      white-space:nowrap;
+      background:rgba(255,255,255,.82);
+      border:1px solid rgba(255,255,255,.95);
+      box-shadow:0 8px 20px rgba(37,99,235,.08);
+      color:#344054;
+      border-radius:999px;
+      padding:10px 13px;
+      font-weight:850;
+      font-size:13px;
+    }
+    .pill.connected{background:#ecfdf3;color:#027a48}
+    .pill.local{background:#fff7ed;color:#b45309}
+    .hero{
+      background:var(--card);
+      border:1px solid rgba(255,255,255,.8);
+      border-radius:28px;
+      box-shadow:var(--shadow);
+      padding:18px;
+      margin-bottom:14px;
+    }
+    .big-button{
+      width:100%;
+      border:0;
+      border-radius:24px;
+      padding:24px 16px;
+      background:linear-gradient(135deg,var(--blue),var(--blue2));
+      color:white;
+      font-size:25px;
+      font-weight:950;
+      letter-spacing:-.04em;
+      box-shadow:0 18px 30px rgba(37,99,235,.24);
+      cursor:pointer;
+      min-height:90px;
+    }
+    .big-button:active{transform:translateY(1px)}
+    .sub-actions{
+      display:grid;
+      grid-template-columns:1fr 1fr 1fr;
+      gap:10px;
+      margin-top:12px;
+    }
+    button.secondary, button.ghost, button.danger, button.success, button.warning{
+      border:1px solid var(--line);
+      background:#fff;
+      border-radius:16px;
+      padding:13px 12px;
+      color:#344054;
+      font-weight:850;
+      cursor:pointer;
+    }
+    button.success{border-color:rgba(22,163,74,.25);background:#f0fdf4;color:#15803d}
+    button.danger{border-color:rgba(220,38,38,.25);background:#fff5f5;color:#b42318}
+    button.warning{border-color:rgba(245,158,11,.28);background:#fffbeb;color:#b45309}
+    button.ghost{background:#f8fafc}
+    button:disabled{opacity:.55;cursor:not-allowed}
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      gap:10px;
+      margin-bottom:14px;
+    }
+    .stat{
+      background:rgba(255,255,255,.95);
+      border:1px solid rgba(255,255,255,.85);
+      border-radius:20px;
+      padding:14px 12px;
+      box-shadow:0 8px 18px rgba(16,24,40,.05);
+    }
+    .stat .label{color:var(--muted);font-size:12px;font-weight:850;margin-bottom:7px}
+    .stat .value{font-size:25px;line-height:1;font-weight:950;letter-spacing:-.04em}
+    .section{
+      background:var(--card);
+      border:1px solid rgba(255,255,255,.8);
+      border-radius:var(--radius);
+      box-shadow:0 10px 24px rgba(16,24,40,.06);
+      padding:16px;
+      margin-bottom:14px;
+    }
+    .section-head{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:10px;
+      margin-bottom:12px;
+    }
+    .section h2{margin:0;font-size:18px;letter-spacing:-.04em}
+    .hint{color:var(--muted);font-size:13px;margin-top:4px;line-height:1.42}
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      background:#eff6ff;
+      color:#1d4ed8;
+      border-radius:999px;
+      padding:7px 10px;
+      font-size:12px;
+      font-weight:900;
+      height:fit-content;
+      white-space:nowrap;
+    }
+    .active-list{display:flex;flex-direction:column;gap:10px}
+    .visit-card{
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:13px;
+      display:grid;
+      grid-template-columns:1fr auto;
+      align-items:center;
+      gap:10px;
+      background:#fff;
+    }
+    .visit-card strong{display:block;margin-bottom:4px;letter-spacing:-.03em}
+    .visit-card span{color:var(--muted);font-size:13px}
+    .visit-actions{display:flex;gap:8px;align-items:center}
+    .empty{
+      border:1px dashed #cbd5e1;
+      background:#f8fafc;
+      color:#64748b;
+      border-radius:18px;
+      padding:22px 14px;
+      text-align:center;
+      font-weight:760;
+    }
+    .summary{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:12px;
+    }
+    .mini-table{
+      width:100%;
+      border-collapse:separate;
+      border-spacing:0 7px;
+    }
+    .mini-table th{
+      color:var(--muted);
+      font-size:12px;
+      text-align:left;
+      padding:0 8px;
+    }
+    .mini-table td{
+      background:#f8fafc;
+      border-top:1px solid #eef2f7;
+      border-bottom:1px solid #eef2f7;
+      padding:10px 8px;
+      font-size:13px;
+      font-weight:760;
+    }
+    .mini-table td:first-child{border-left:1px solid #eef2f7;border-radius:12px 0 0 12px}
+    .mini-table td:last-child{border-right:1px solid #eef2f7;border-radius:0 12px 12px 0;text-align:right}
+    .timeline-wrap{overflow-x:auto}
+    .timeline{
+      width:100%;
+      min-width:860px;
+      border-collapse:separate;
+      border-spacing:0 8px;
+    }
+    .timeline th{
+      text-align:left;
+      color:var(--muted);
+      font-size:12px;
+      padding:0 9px;
+      white-space:nowrap;
+    }
+    .timeline td{
+      background:#f8fafc;
+      border-top:1px solid #eef2f7;
+      border-bottom:1px solid #eef2f7;
+      padding:11px 9px;
+      font-size:13px;
+      font-weight:760;
+      vertical-align:middle;
+    }
+    .timeline td:first-child{border-left:1px solid #eef2f7;border-radius:14px 0 0 14px}
+    .timeline td:last-child{border-right:1px solid #eef2f7;border-radius:0 14px 14px 0}
+    .tag{
+      display:inline-flex;
+      padding:5px 8px;
+      border-radius:999px;
+      font-size:12px;
+      font-weight:900;
+      margin-right:4px;
+      margin-bottom:4px;
+      background:#eef2ff;
+      color:#3730a3;
+    }
+    .yn-y{color:#15803d;font-weight:950}
+    .yn-n{color:#b42318;font-weight:950}
+    .status-active{color:#1d4ed8;font-weight:950}
+    .status-done{color:#475467;font-weight:950}
+    dialog{
+      width:min(620px,calc(100% - 24px));
+      border:0;
+      border-radius:26px;
+      box-shadow:0 30px 80px rgba(16,24,40,.28);
+      padding:0;
+    }
+    dialog::backdrop{background:rgba(15,23,42,.42);backdrop-filter:blur(3px)}
+    .modal{padding:18px}
+    .modal-head{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:12px;
+      padding-bottom:14px;
+      border-bottom:1px solid var(--line);
+      margin-bottom:14px;
+    }
+    .modal-head h3{margin:0 0 5px;font-size:21px;letter-spacing:-.04em}
+    .modal-head p{font-size:13px}
+    .x{
+      border:0;
+      background:#f2f4f7;
+      border-radius:999px;
+      width:36px;
+      height:36px;
+      font-size:18px;
+      cursor:pointer;
+    }
+    .form-grid{display:grid;gap:13px}
+    label{display:block;font-size:13px;color:#344054;font-weight:850;margin-bottom:7px}
+    select,input,textarea{
+      width:100%;
+      border:1px solid #d0d5dd;
+      border-radius:14px;
+      padding:13px 12px;
+      font:inherit;
+      background:#fff;
+      outline:none;
+    }
+    select:focus,input:focus,textarea:focus{border-color:#84a8ff;box-shadow:0 0 0 4px rgba(37,99,235,.10)}
+    textarea{min-height:84px;resize:vertical}
+    .seg{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      border:1px solid var(--line);
+      background:#f8fafc;
+      padding:5px;
+      border-radius:16px;
+      gap:5px;
+    }
+    .seg input{display:none}
+    .seg label{
+      margin:0;
+      padding:12px;
+      text-align:center;
+      border-radius:12px;
+      cursor:pointer;
+      color:#667085;
+    }
+    .seg input:checked + label{background:#fff;color:#101828;box-shadow:0 4px 12px rgba(16,24,40,.08)}
+    .item-grid{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:8px;
+    }
+    .check-chip input{display:none}
+    .check-chip span{
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      min-height:42px;
+      padding:9px 8px;
+      border:1px solid #d0d5dd;
+      border-radius:14px;
+      background:#fff;
+      font-size:13px;
+      font-weight:850;
+      cursor:pointer;
+      text-align:center;
+    }
+    .check-chip input:checked + span{
+      border-color:#93c5fd;
+      background:#eff6ff;
+      color:#1d4ed8;
+      box-shadow:0 0 0 3px rgba(37,99,235,.08);
+    }
+    .modal-actions{display:grid;grid-template-columns:1fr 1.4fr;gap:10px;margin-top:16px}
+    .save{
+      border:0;
+      background:#111827;
+      color:white;
+      border-radius:16px;
+      font-weight:900;
+      font-size:16px;
+      cursor:pointer;
+      padding:14px 12px;
+    }
+    .toast{
+      position:fixed;
+      left:50%;
+      bottom:22px;
+      transform:translateX(-50%) translateY(20px);
+      opacity:0;
+      background:#111827;
+      color:#fff;
+      border-radius:999px;
+      padding:12px 16px;
+      font-size:14px;
+      font-weight:850;
+      transition:.2s ease;
+      pointer-events:none;
+      z-index:10;
+      box-shadow:0 14px 30px rgba(0,0,0,.25);
+    }
+    .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+    .footer-note{color:#667085;font-size:12px;line-height:1.5;text-align:center;margin-top:18px}
+    @media (max-width:760px){
+      .wrap{padding:18px 12px 30px}
+      header{display:block}
+      .top-pills{justify-content:flex-start;margin-top:12px}
+      h1{font-size:24px}
+      .grid{grid-template-columns:repeat(2,1fr)}
+      .summary{grid-template-columns:1fr}
+      .visit-card{grid-template-columns:1fr}
+      .visit-actions{display:grid;grid-template-columns:1fr 1fr}
+      .visit-actions button{width:100%}
+      .sub-actions{grid-template-columns:1fr}
+      .big-button{font-size:23px}
+      .item-grid{grid-template-columns:repeat(2,1fr)}
+      .modal-actions{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>방문고객 기록</h1>
+        <p>입점 등록 → 퇴점 처리 → 상담 품목·구매 여부·미구매 사유 기록</p>
+      </div>
+      <div class="top-pills">
+        <div class="pill" id="todayLabel">오늘</div>
+        <div class="pill" id="branchLabel">삼천포점</div>
+        <div class="pill" id="modeLabel">연결 확인 중</div>
+      </div>
+    </header>
+
+    <section class="hero">
+      <button class="big-button" id="checkInBtn">입점 등록</button>
+      <div class="sub-actions">
+        <button class="secondary" id="refreshBtn">새로고침</button>
+        <button class="secondary" id="exportCsvBtn">오늘 데이터 CSV 다운로드</button>
+        <button class="danger" id="resetLocalBtn">로컬 테스트 초기화</button>
+      </div>
+    </section>
+
+    <section class="grid" aria-label="오늘 요약">
+      <div class="stat">
+        <div class="label">오늘 입점</div>
+        <div class="value" id="totalVisits">0</div>
+      </div>
+      <div class="stat">
+        <div class="label">퇴점 완료</div>
+        <div class="value" id="closedVisits">0</div>
+      </div>
+      <div class="stat">
+        <div class="label">구매</div>
+        <div class="value" id="soldVisits">0</div>
+      </div>
+      <div class="stat">
+        <div class="label">전환율</div>
+        <div class="value" id="conversionRate">0%</div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <div>
+          <h2>현재 매장 방문 중</h2>
+          <div class="hint">실수로 입점을 눌렀다면 ‘입점 취소’를 누르면 됩니다.</div>
+        </div>
+        <span class="badge" id="activeBadge">0명</span>
+      </div>
+      <div class="active-list" id="activeList"></div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <div>
+          <h2>오늘 입점·퇴점 타임라인</h2>
+          <div class="hint">입점 시간과 퇴점 시간을 한 줄로 확인합니다. Google Sheets 연결 시 같은 데이터가 시트에도 자동 누적됩니다.</div>
+        </div>
+      </div>
+      <div class="timeline-wrap">
+        <table class="timeline">
+          <thead>
+            <tr>
+              <th>구분</th>
+              <th>입점</th>
+              <th>퇴점</th>
+              <th>체류</th>
+              <th>상담품목</th>
+              <th>구매</th>
+              <th>미구매사유</th>
+              <th>상태</th>
+            </tr>
+          </thead>
+          <tbody id="timelineBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <div>
+          <h2>오늘 누적 현황</h2>
+          <div class="hint">미구매 사유와 상담 품목을 자동 집계합니다.</div>
+        </div>
+      </div>
+      <div class="summary">
+        <div>
+          <table class="mini-table">
+            <thead><tr><th>미구매 사유</th><th>건수</th></tr></thead>
+            <tbody id="reasonTable"></tbody>
+          </table>
+        </div>
+        <div>
+          <table class="mini-table">
+            <thead><tr><th>상담 품목</th><th>건수</th></tr></thead>
+            <tbody id="itemTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <p class="footer-note">
+      API_URL을 비워두면 로컬 테스트 모드로 작동합니다.<br>
+      Google Apps Script 웹 앱 URL을 넣으면 여러 기기에서 같은 Google Sheets에 누적됩니다.
+    </p>
+  </div>
+
+  <dialog id="checkoutDialog">
+    <form class="modal" id="checkoutForm" method="dialog">
+      <div class="modal-head">
+        <div>
+          <h3>퇴점 처리</h3>
+          <p id="checkoutSub">입점 시간을 확인하고 상담 결과를 입력해주세요.</p>
+        </div>
+        <button class="x" type="button" id="closeDialogBtn">×</button>
+      </div>
+
+      <input type="hidden" id="selectedVisitId" />
+
+      <div class="form-grid">
+        <div>
+          <label>상담한 품목 <span class="hint">최대 5개 선택</span></label>
+          <div class="item-grid" id="itemGrid"></div>
+        </div>
+
+        <div id="otherItemWrap" style="display:none">
+          <label for="otherItem">기타 상담품목 직접 작성</label>
+          <input id="otherItem" type="text" placeholder="상담 품목을 직접 입력하세요" />
+        </div>
+
+        <div>
+          <label>구매 여부</label>
+          <div class="seg">
+            <input type="radio" id="saleYes" name="sale" value="Y" checked>
+            <label for="saleYes">Y 구매</label>
+            <input type="radio" id="saleNo" name="sale" value="N">
+            <label for="saleNo">N 미구매</label>
+          </div>
+        </div>
+
+        <div id="reasonWrap" style="display:none">
+          <label for="reason">미구매 사유</label>
+          <select id="reason">
+            <option value="">선택하세요</option>
+            <option>단순 방문</option>
+            <option>가격 비교</option>
+            <option>온라인 구매 예정</option>
+            <option>가족 협의</option>
+            <option>구매 보류</option>
+            <option>재고 없음</option>
+            <option>혜택 부족</option>
+            <option>설치 일정</option>
+            <option>미진열</option>
+            <option>디자인불만족</option>
+            <option>기존가전수리</option>
+            <option>신제품출시대기</option>
+            <option>기타</option>
+          </select>
+        </div>
+
+        <div id="otherReasonWrap" style="display:none">
+          <label for="otherReason">기타 사유 직접 작성</label>
+          <input id="otherReason" type="text" placeholder="사유를 직접 입력하세요" />
+        </div>
+
+        <div>
+          <label for="memo">메모</label>
+          <textarea id="memo" placeholder="재방문 예정, 고객 요청사항, 비교 모델 등"></textarea>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="ghost" type="button" id="cancelCheckoutBtn">취소</button>
+        <button class="save" type="submit">퇴점 저장</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div class="toast" id="toast">저장되었습니다.</div>
+
+  <script>
+    /**
+     * Google Apps Script 웹 앱 URL을 여기에 붙여넣으세요.
+     * 예: const API_URL = "https://script.google.com/macros/s/배포ID/exec";
+     * 비워두면 이 브라우저에서만 저장되는 로컬 테스트 모드로 작동합니다.
+     */
+    const API_URL = "";
+    const BRANCH_NAME = "삼천포점";
+    const LOCAL_KEY = "himart_visitor_tracker_v3";
+
+    const itemOptions = [
+      "냉장고","김치냉장고","세탁건조기","의류관리기","정수기",
+      "에어컨","TV","로봇청소기","청소기","선풍기",
+      "휴대폰","PC/IT","생활가전","기타"
+    ];
+
+    const $ = (id) => document.getElementById(id);
+    let state = { records: [], active: [], summary: {}, branch: BRANCH_NAME };
+
+    function pad(n){ return String(n).padStart(2,"0"); }
+    function nowISO(){ return new Date().toISOString(); }
+    function todayKey(){
+      const d = new Date();
+      return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+    }
+    function formatDateLabel(){
+      const d = new Date();
+      return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+    }
+    function formatClock(iso){
+      if(!iso) return "";
+      const d = new Date(iso);
+      if(Number.isNaN(d.getTime())) return "";
+      return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    }
+    function formatDateTime(iso){
+      if(!iso) return "";
+      const d = new Date(iso);
+      if(Number.isNaN(d.getTime())) return "";
+      return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+    }
+    function durationText(startISO, endISO){
+      if(!startISO) return "";
+      const start = new Date(startISO).getTime();
+      const end = endISO ? new Date(endISO).getTime() : Date.now();
+      if(Number.isNaN(start) || Number.isNaN(end) || end < start) return "";
+      const min = Math.max(0, Math.round((end - start) / 60000));
+      const h = Math.floor(min / 60);
+      const m = min % 60;
+      return h ? `${h}시간 ${m}분` : `${m}분`;
+    }
+    function isConnected(){
+      return API_URL && API_URL.startsWith("https://script.google.com/");
+    }
+    function showToast(text){
+      const toast = $("toast");
+      toast.textContent = text;
+      toast.classList.add("show");
+      setTimeout(() => toast.classList.remove("show"), 1500);
+    }
+    function setLoading(isLoading){
+      ["checkInBtn","refreshBtn","exportCsvBtn"].forEach(id => $(id).disabled = isLoading);
+    }
+
+    function jsonp(action, params = {}){
+      return new Promise((resolve, reject) => {
+        const callback = `__visitorCb_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+        const script = document.createElement("script");
+        const url = new URL(API_URL);
+
+        url.searchParams.set("callback", callback);
+        url.searchParams.set("action", action);
+        url.searchParams.set("branch", BRANCH_NAME);
+
+        Object.entries(params).forEach(([key, value]) => {
+          if(Array.isArray(value)) value = value.join("|");
+          url.searchParams.set(key, value ?? "");
+        });
+
+        const timer = setTimeout(() => {
+          cleanup();
+          reject(new Error("응답 시간이 초과되었습니다."));
+        }, 15000);
+
+        function cleanup(){
+          clearTimeout(timer);
+          delete window[callback];
+          script.remove();
+        }
+
+        window[callback] = (res) => {
+          cleanup();
+          if(res && res.ok) resolve(res);
+          else reject(new Error((res && res.error) || "API 오류가 발생했습니다."));
+        };
+
+        script.onerror = () => {
+          cleanup();
+          reject(new Error("Apps Script 연결에 실패했습니다."));
+        };
+
+        script.src = url.toString();
+        document.body.appendChild(script);
+      });
+    }
+
+    function getLocalRecords(){
+      try { return JSON.parse(localStorage.getItem(LOCAL_KEY) || "[]"); }
+      catch(e){ return []; }
+    }
+    function saveLocalRecords(records){
+      localStorage.setItem(LOCAL_KEY, JSON.stringify(records));
+    }
+    function localSummary(){
+      const records = getLocalRecords()
+        .filter(r => r.date === todayKey() && r.status !== "취소")
+        .sort((a,b) => new Date(a.checkInAt) - new Date(b.checkInAt));
+
+      const active = records.filter(r => r.status === "방문중");
+      const closed = records.filter(r => r.status === "퇴점완료").length;
+      const sold = records.filter(r => r.purchaseYN === "Y").length;
+      const reasonCounts = {};
+      const itemCounts = {};
+
+      records.forEach(r => {
+        (r.items || []).forEach(item => {
+          itemCounts[item] = (itemCounts[item] || 0) + 1;
+        });
+        if(r.purchaseYN === "N"){
+          const key = r.reason === "기타" && r.otherReason ? `기타: ${r.otherReason}` : r.reason;
+          if(key) reasonCounts[key] = (reasonCounts[key] || 0) + 1;
+        }
+      });
+
+      return {
+        ok:true,
+        data:{
+          branch:BRANCH_NAME,
+          records,
+          active,
+          summary:{
+            total:records.length,
+            closed,
+            sold,
+            conversion: closed ? Math.round((sold / closed) * 100) : 0,
+            reasonCounts,
+            itemCounts
+          }
+        }
+      };
+    }
+    function localApi(action, params = {}){
+      const records = getLocalRecords();
+
+      if(action === "checkin"){
+        const todayAll = records.filter(r => r.date === todayKey());
+        const visitNo = todayAll.length + 1;
+        records.push({
+          id:`local-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+          date:todayKey(),
+          visitNo,
+          branch:BRANCH_NAME,
+          checkInAt:nowISO(),
+          checkOutAt:"",
+          status:"방문중",
+          items:[],
+          purchaseYN:"",
+          reason:"",
+          otherReason:"",
+          memo:""
+        });
+        saveLocalRecords(records);
+        return Promise.resolve({ok:true});
+      }
+
+      if(action === "cancel"){
+        const idx = records.findIndex(r => r.id === params.id);
+        if(idx >= 0 && records[idx].status === "방문중"){
+          records[idx].status = "취소";
+          saveLocalRecords(records);
+        }
+        return Promise.resolve({ok:true});
+      }
+
+      if(action === "checkout"){
+        const idx = records.findIndex(r => r.id === params.id);
+        if(idx >= 0){
+          records[idx] = {
+            ...records[idx],
+            checkOutAt:nowISO(),
+            status:"퇴점완료",
+            items:params.items || [],
+            purchaseYN:params.purchaseYN,
+            reason:params.purchaseYN === "N" ? params.reason : "",
+            otherReason:params.purchaseYN === "N" ? params.otherReason : "",
+            memo:params.memo || ""
+          };
+          saveLocalRecords(records);
+        }
+        return Promise.resolve({ok:true});
+      }
+
+      if(action === "summary"){
+        return Promise.resolve(localSummary());
+      }
+
+      return Promise.reject(new Error("알 수 없는 로컬 액션입니다."));
+    }
+    function api(action, params = {}){
+      return isConnected() ? jsonp(action, params) : localApi(action, params);
+    }
+
+    function buildItemGrid(){
+      const grid = $("itemGrid");
+      grid.innerHTML = "";
+      itemOptions.forEach(item => {
+        const label = document.createElement("label");
+        label.className = "check-chip";
+        label.innerHTML = `<input type="checkbox" name="items" value="${item}"><span>${item}</span>`;
+        label.querySelector("input").addEventListener("change", (e) => {
+          const checked = [...document.querySelectorAll("input[name='items']:checked")];
+          if(checked.length > 5){
+            e.target.checked = false;
+            showToast("상담품목은 최대 5개까지 선택 가능합니다.");
+          }
+          syncOtherItem();
+        });
+        grid.appendChild(label);
+      });
+    }
+
+    async function refresh(){
+      try{
+        setLoading(true);
+        const res = await api("summary");
+        state = res.data;
+        render();
+      }catch(err){
+        alert(err.message);
+      }finally{
+        setLoading(false);
+      }
+    }
+    async function checkIn(){
+      try{
+        setLoading(true);
+        await api("checkin", { userAgent:navigator.userAgent });
+        await refresh();
+        showToast("입점 등록 완료");
+      }catch(err){
+        alert(err.message);
+      }finally{
+        setLoading(false);
+      }
+    }
+    async function cancelVisit(id){
+      if(!confirm("실수로 등록한 입점을 취소할까요?")) return;
+      try{
+        setLoading(true);
+        await api("cancel", { id });
+        await refresh();
+        showToast("입점 취소 완료");
+      }catch(err){
+        alert(err.message);
+      }finally{
+        setLoading(false);
+      }
+    }
+
+    function openCheckout(id){
+      const record = state.records.find(r => r.id === id);
+      if(!record) return;
+
+      $("selectedVisitId").value = id;
+      $("checkoutSub").textContent = `방문 ${record.visitNo}번 · 입점 ${formatClock(record.checkInAt)}`;
+
+      document.querySelectorAll("input[name='items']").forEach(input => input.checked = false);
+      $("saleYes").checked = true;
+      $("otherItem").value = "";
+      $("reason").value = "";
+      $("otherReason").value = "";
+      $("memo").value = "";
+      syncOtherItem();
+      syncSaleFields();
+
+      $("checkoutDialog").showModal();
+    }
+    function closeCheckout(){
+      $("checkoutDialog").close();
+    }
+    function syncOtherItem(){
+      const selected = [...document.querySelectorAll("input[name='items']:checked")].map(input => input.value);
+      const isOther = selected.includes("기타");
+      $("otherItemWrap").style.display = isOther ? "block" : "none";
+      $("otherItem").required = isOther;
+      if(!isOther) $("otherItem").value = "";
+    }
+
+    function syncSaleFields(){
+      const sale = document.querySelector("input[name='sale']:checked").value;
+      const isNo = sale === "N";
+      $("reasonWrap").style.display = isNo ? "block" : "none";
+      $("reason").required = isNo;
+      syncOtherReason();
+    }
+    function syncOtherReason(){
+      const sale = document.querySelector("input[name='sale']:checked").value;
+      const isOther = $("reason").value === "기타";
+      $("otherReasonWrap").style.display = sale === "N" && isOther ? "block" : "none";
+      $("otherReason").required = sale === "N" && isOther;
+    }
+    async function submitCheckout(event){
+      event.preventDefault();
+
+      const id = $("selectedVisitId").value;
+      const selectedItems = [...document.querySelectorAll("input[name='items']:checked")].map(input => input.value);
+      const otherItem = $("otherItem").value.trim();
+      const items = selectedItems.map(item => item === "기타" ? `기타: ${otherItem}` : item);
+      const purchaseYN = document.querySelector("input[name='sale']:checked").value;
+      const reason = purchaseYN === "N" ? $("reason").value : "";
+      const otherReason = reason === "기타" ? $("otherReason").value.trim() : "";
+
+      if(selectedItems.length === 0){
+        alert("상담한 품목을 1개 이상 선택해주세요.");
+        return;
+      }
+      if(selectedItems.includes("기타") && !otherItem){
+        alert("기타 상담품목을 직접 작성해주세요.");
+        return;
+      }
+      if(purchaseYN === "N" && !reason){
+        alert("미구매 사유를 선택해주세요.");
+        return;
+      }
+      if(reason === "기타" && !otherReason){
+        alert("기타 사유를 직접 작성해주세요.");
+        return;
+      }
+
+      try{
+        setLoading(true);
+        await api("checkout", {
+          id,
+          items,
+          purchaseYN,
+          reason,
+          otherReason,
+          memo: $("memo").value.trim()
+        });
+        closeCheckout();
+        await refresh();
+        showToast("퇴점 저장 완료");
+      }catch(err){
+        alert(err.message);
+      }finally{
+        setLoading(false);
+      }
+    }
+
+    function renderActive(){
+      const active = state.active || [];
+      $("activeBadge").textContent = `${active.length}명`;
+
+      const list = $("activeList");
+      list.innerHTML = "";
+
+      if(active.length === 0){
+        list.innerHTML = `<div class="empty">현재 방문 중인 고객 기록이 없습니다.</div>`;
+        return;
+      }
+
+      active.slice().reverse().forEach(r => {
+        const el = document.createElement("div");
+        el.className = "visit-card";
+        el.innerHTML = `
+          <div>
+            <strong>방문 ${r.visitNo}번</strong>
+            <span>입점 ${formatClock(r.checkInAt)} · 현재 체류 ${durationText(r.checkInAt, "")}</span>
+          </div>
+          <div class="visit-actions">
+            <button class="warning" type="button" data-cancel="${r.id}">입점 취소</button>
+            <button class="success" type="button" data-checkout="${r.id}">퇴점 처리</button>
+          </div>
+        `;
+        el.querySelector("[data-cancel]").addEventListener("click", () => cancelVisit(r.id));
+        el.querySelector("[data-checkout]").addEventListener("click", () => openCheckout(r.id));
+        list.appendChild(el);
+      });
+    }
+
+    function renderTimeline(){
+      const body = $("timelineBody");
+      const records = state.records || [];
+      body.innerHTML = "";
+
+      if(records.length === 0){
+        body.innerHTML = `<tr><td colspan="8" class="empty">오늘 기록이 없습니다.</td></tr>`;
+        return;
+      }
+
+      records.forEach(r => {
+        const items = (r.items || []).map(item => `<span class="tag">${item}</span>`).join("");
+        const reason = r.purchaseYN === "N"
+          ? (r.reason === "기타" && r.otherReason ? `기타: ${r.otherReason}` : r.reason)
+          : "";
+        const ynClass = r.purchaseYN === "Y" ? "yn-y" : (r.purchaseYN === "N" ? "yn-n" : "");
+        const statusClass = r.status === "방문중" ? "status-active" : "status-done";
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${r.visitNo}</td>
+          <td>${formatClock(r.checkInAt)}</td>
+          <td>${r.checkOutAt ? formatClock(r.checkOutAt) : "-"}</td>
+          <td>${durationText(r.checkInAt, r.checkOutAt)}</td>
+          <td>${items || "-"}</td>
+          <td class="${ynClass}">${r.purchaseYN || "-"}</td>
+          <td>${reason || "-"}</td>
+          <td class="${statusClass}">${r.status}</td>
+        `;
+        body.appendChild(tr);
+      });
+    }
+
+    function renderCountTable(tbodyId, countMap, emptyText){
+      const tbody = $(tbodyId);
+      const rows = Object.entries(countMap || {}).sort((a,b) => b[1] - a[1]);
+      tbody.innerHTML = "";
+
+      if(rows.length === 0){
+        tbody.innerHTML = `<tr><td>${emptyText}</td><td>0</td></tr>`;
+        return;
+      }
+
+      rows.forEach(([name, count]) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td>${name}</td><td>${count}</td>`;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function renderSummary(){
+      const s = state.summary || {};
+      $("totalVisits").textContent = s.total || 0;
+      $("closedVisits").textContent = s.closed || 0;
+      $("soldVisits").textContent = s.sold || 0;
+      $("conversionRate").textContent = `${s.conversion || 0}%`;
+
+      renderCountTable("reasonTable", s.reasonCounts, "미구매 기록 없음");
+      renderCountTable("itemTable", s.itemCounts, "상담 기록 없음");
+    }
+
+    function render(){
+      $("todayLabel").textContent = formatDateLabel();
+      $("branchLabel").textContent = state.branch || BRANCH_NAME;
+      $("modeLabel").textContent = isConnected() ? "Google Sheets 연결" : "로컬 테스트";
+      $("modeLabel").className = `pill ${isConnected() ? "connected" : "local"}`;
+      $("resetLocalBtn").style.display = isConnected() ? "none" : "block";
+
+      renderActive();
+      renderTimeline();
+      renderSummary();
+    }
+
+    function csvEscape(value){
+      const text = String(value ?? "");
+      return `"${text.replaceAll('"','""')}"`;
+    }
+    function exportCSV(){
+      const records = state.records || [];
+      const headers = ["날짜","구분","입점시간","퇴점시간","체류시간","상담품목","구매여부","미구매사유","기타사유","상태","메모"];
+      const rows = records.map(r => [
+        formatDateLabel(),
+        r.visitNo,
+        formatDateTime(r.checkInAt),
+        formatDateTime(r.checkOutAt),
+        durationText(r.checkInAt, r.checkOutAt),
+        (r.items || []).join(" / "),
+        r.purchaseYN,
+        r.reason,
+        r.otherReason,
+        r.status,
+        r.memo
+      ]);
+
+      const csv = "\uFEFF" + [headers, ...rows].map(row => row.map(csvEscape).join(",")).join("\n");
+      const blob = new Blob([csv], { type:"text/csv;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `방문고객기록_${todayKey()}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+    function resetLocal(){
+      if(isConnected()) return;
+      if(!confirm("이 브라우저의 로컬 테스트 데이터를 초기화할까요?")) return;
+      localStorage.removeItem(LOCAL_KEY);
+      refresh();
+      showToast("로컬 테스트 데이터 초기화 완료");
+    }
+
+    buildItemGrid();
+    $("checkInBtn").addEventListener("click", checkIn);
+    $("refreshBtn").addEventListener("click", refresh);
+    $("exportCsvBtn").addEventListener("click", exportCSV);
+    $("resetLocalBtn").addEventListener("click", resetLocal);
+    $("checkoutForm").addEventListener("submit", submitCheckout);
+    $("closeDialogBtn").addEventListener("click", closeCheckout);
+    $("cancelCheckoutBtn").addEventListener("click", closeCheckout);
+    $("saleYes").addEventListener("change", syncSaleFields);
+    $("saleNo").addEventListener("change", syncSaleFields);
+    $("reason").addEventListener("change", syncOtherReason);
+    $("otherItem").addEventListener("input", syncOtherItem);
+
+    refresh();
+    setInterval(() => refresh(), 60000);
+  </script>
+</body>
+</html>
