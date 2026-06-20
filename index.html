@@ -3,422 +3,83 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>방문고객 기록 v12</title>
+  <title>방문고객 기록 v13</title>
   <style>
-    :root{
-      --bg:#f4f6fb;
-      --card:#ffffff;
-      --text:#101828;
-      --muted:#667085;
-      --line:#e4e7ec;
-      --blue:#2563eb;
-      --blue2:#0f62fe;
-      --green:#16a34a;
-      --red:#dc2626;
-      --amber:#f59e0b;
-      --slate:#111827;
-      --shadow:0 12px 30px rgba(16,24,40,.08);
-      --radius:22px;
+    :root {
+      --bg:#f5f6f8; --card:#fff; --text:#101828; --muted:#667085; --line:#e4e7ec;
+      --blue:#2563eb; --green:#16a34a; --red:#dc2626; --orange:#f97316;
+      --shadow:0 12px 30px rgba(16,24,40,.08); --radius:22px;
     }
     *{box-sizing:border-box}
-    body{
-      margin:0;
-      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans KR","Apple SD Gothic Neo",sans-serif;
-      background:linear-gradient(180deg,#eef3ff 0%,var(--bg) 42%,#f7f7f8 100%);
-      color:var(--text);
-    }
-    .wrap{
-      width:min(1100px,100%);
-      margin:0 auto;
-      padding:22px 16px 42px;
-    }
-    header{
-      display:flex;
-      justify-content:space-between;
-      align-items:flex-start;
-      gap:12px;
-      margin-bottom:16px;
-    }
-    h1{
-      font-size:27px;
-      line-height:1.16;
-      margin:0 0 7px;
-      letter-spacing:-.045em;
-    }
+    body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans KR",sans-serif;background:linear-gradient(180deg,#eef3ff 0%,var(--bg) 42%,#f7f7f8 100%);color:var(--text)}
+    .wrap{width:min(980px,100%);margin:0 auto;padding:22px 16px 40px}
+    header{display:flex;justify-content:space-between;gap:12px;margin-bottom:16px}
+    .branch-badge{display:inline-flex;margin-bottom:10px;padding:8px 12px;border-radius:999px;background:#fff7ed;color:#9a3412;border:1px solid #fed7aa;font-size:13px;font-weight:850}
+    h1{font-size:26px;margin:0 0 6px;letter-spacing:-.04em}
     p{margin:0;color:var(--muted);font-size:14px;line-height:1.45}
-    .top-pills{
-      display:flex;
-      flex-wrap:wrap;
-      justify-content:flex-end;
-      gap:8px;
-    }
-    .pill{
-      white-space:nowrap;
-      background:rgba(255,255,255,.82);
-      border:1px solid rgba(255,255,255,.95);
-      box-shadow:0 8px 20px rgba(37,99,235,.08);
-      color:#344054;
-      border-radius:999px;
-      padding:10px 13px;
-      font-weight:850;
-      font-size:13px;
-    }
-    .pill.connected{background:#ecfdf3;color:#027a48}
-    .pill.local{background:#fff7ed;color:#b45309}
-    .hero{
-      background:var(--card);
-      border:1px solid rgba(255,255,255,.8);
-      border-radius:28px;
-      box-shadow:var(--shadow);
-      padding:18px;
-      margin-bottom:14px;
-    }
-    .big-button{
-      width:100%;
-      border:0;
-      border-radius:24px;
-      padding:24px 16px;
-      background:linear-gradient(135deg,var(--blue),var(--blue2));
-      color:white;
-      font-size:25px;
-      font-weight:950;
-      letter-spacing:-.04em;
-      box-shadow:0 18px 30px rgba(37,99,235,.24);
-      cursor:pointer;
-      min-height:90px;
-    }
+    .pill{white-space:nowrap;border-radius:999px;padding:10px 13px;font-weight:800;font-size:13px;height:fit-content;background:#eff6ff;color:#1d4ed8}
+    .pill.err{background:#fff5f5;color:#b42318}
+    .hero,.section{background:var(--card);border-radius:28px;box-shadow:var(--shadow);padding:18px;margin-bottom:14px}
+    .big-button{width:100%;border:0;border-radius:24px;padding:24px 16px;background:linear-gradient(135deg,var(--blue),#0f62fe);color:white;font-size:25px;font-weight:950;letter-spacing:-.04em;box-shadow:0 18px 30px rgba(37,99,235,.24);cursor:pointer;min-height:88px}
     .big-button:active{transform:translateY(1px)}
-    .sub-actions{
-      display:grid;
-      grid-template-columns:1fr 1fr 1fr;
-      gap:10px;
-      margin-top:12px;
-    }
-    button.secondary, button.ghost, button.danger, button.success, button.warning{
-      border:1px solid var(--line);
-      background:#fff;
-      border-radius:16px;
-      padding:13px 12px;
-      color:#344054;
-      font-weight:850;
-      cursor:pointer;
-    }
+    .sub-actions{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:12px}
+    button.secondary,button.danger,button.success,button.ghost{border:1px solid var(--line);background:#fff;border-radius:16px;padding:13px 12px;color:#344054;font-weight:850;cursor:pointer}
     button.success{border-color:rgba(22,163,74,.25);background:#f0fdf4;color:#15803d}
     button.danger{border-color:rgba(220,38,38,.25);background:#fff5f5;color:#b42318}
-    button.warning{border-color:rgba(245,158,11,.28);background:#fffbeb;color:#b45309}
     button.ghost{background:#f8fafc}
     button:disabled{opacity:.55;cursor:not-allowed}
-    .grid{
-      display:grid;
-      grid-template-columns:repeat(4,1fr);
-      gap:10px;
-      margin-bottom:14px;
-    }
-    .stat{
-      background:rgba(255,255,255,.95);
-      border:1px solid rgba(255,255,255,.85);
-      border-radius:20px;
-      padding:14px 12px;
-      box-shadow:0 8px 18px rgba(16,24,40,.05);
-    }
-    .stat .label{color:var(--muted);font-size:12px;font-weight:850;margin-bottom:7px}
+    .sync-status{margin-top:12px;padding:11px 13px;border-radius:15px;background:#f8fafc;border:1px solid #e4e7ec;color:#475467;font-size:13px;font-weight:750;line-height:1.45}
+    .sync-status.ok{background:#f0fdf4;border-color:#bbf7d0;color:#166534}
+    .sync-status.warn{background:#fffbeb;border-color:#fde68a;color:#92400e}
+    .sync-status.err{background:#fff5f5;border-color:#fecaca;color:#991b1b}
+    .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+    .stat{background:rgba(255,255,255,.95);border-radius:20px;padding:14px 12px;box-shadow:0 8px 18px rgba(16,24,40,.05)}
+    .stat .label{color:var(--muted);font-size:12px;font-weight:800;margin-bottom:7px}
     .stat .value{font-size:25px;line-height:1;font-weight:950;letter-spacing:-.04em}
-    .section{
-      background:var(--card);
-      border:1px solid rgba(255,255,255,.8);
-      border-radius:var(--radius);
-      box-shadow:0 10px 24px rgba(16,24,40,.06);
-      padding:16px;
-      margin-bottom:14px;
-    }
-    .section-head{
-      display:flex;
-      justify-content:space-between;
-      align-items:flex-start;
-      gap:10px;
-      margin-bottom:12px;
-    }
+    .section-head{display:flex;justify-content:space-between;gap:10px;margin-bottom:12px}
     .section h2{margin:0;font-size:18px;letter-spacing:-.04em}
-    .hint{color:var(--muted);font-size:13px;margin-top:4px;line-height:1.42}
-    .badge{
-      display:inline-flex;
-      align-items:center;
-      background:#eff6ff;
-      color:#1d4ed8;
-      border-radius:999px;
-      padding:7px 10px;
-      font-size:12px;
-      font-weight:900;
-      height:fit-content;
-      white-space:nowrap;
-    }
-    .active-list{display:flex;flex-direction:column;gap:10px}
-    .visit-card{
-      border:1px solid var(--line);
-      border-radius:18px;
-      padding:13px;
-      display:grid;
-      grid-template-columns:1fr auto;
-      align-items:center;
-      gap:10px;
-      background:#fff;
-    }
-    .visit-card strong{display:block;margin-bottom:4px;letter-spacing:-.03em}
-    .visit-card span{color:var(--muted);font-size:13px}
-    .visit-actions{display:flex;gap:8px;align-items:center}
-    .empty{
-      border:1px dashed #cbd5e1;
-      background:#f8fafc;
-      color:#64748b;
-      border-radius:18px;
-      padding:22px 14px;
-      text-align:center;
-      font-weight:760;
-    }
-    .summary{
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:12px;
-    }
-    .mini-table{
-      width:100%;
-      border-collapse:separate;
-      border-spacing:0 7px;
-    }
-    .mini-table th{
-      color:var(--muted);
-      font-size:12px;
-      text-align:left;
-      padding:0 8px;
-    }
-    .mini-table td{
-      background:#f8fafc;
-      border-top:1px solid #eef2f7;
-      border-bottom:1px solid #eef2f7;
-      padding:10px 8px;
-      font-size:13px;
-      font-weight:760;
-    }
+    .hint{color:var(--muted);font-size:13px;margin-top:4px}
+    .badge{display:inline-flex;align-items:center;background:#eff6ff;color:#1d4ed8;border-radius:999px;padding:7px 10px;font-size:12px;font-weight:900;height:fit-content}
+    .active-list,.timeline{display:flex;flex-direction:column;gap:10px}
+    .visit-card,.timeline-row{border:1px solid var(--line);border-radius:18px;padding:13px;display:grid;grid-template-columns:1fr auto;align-items:center;gap:10px;background:#fff}
+    .visit-card strong,.timeline-row strong{display:block;margin-bottom:4px;letter-spacing:-.03em}
+    .visit-card span,.timeline-row span{color:var(--muted);font-size:13px}
+    .empty{border:1px dashed #cbd5e1;background:#f8fafc;color:#64748b;border-radius:18px;padding:22px 14px;text-align:center;font-weight:750}
+    .summary{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .mini-table{width:100%;border-collapse:separate;border-spacing:0 7px}
+    .mini-table th{color:var(--muted);font-size:12px;text-align:left;padding:0 8px}
+    .mini-table td{background:#f8fafc;border-top:1px solid #eef2f7;border-bottom:1px solid #eef2f7;padding:10px 8px;font-size:13px;font-weight:750}
     .mini-table td:first-child{border-left:1px solid #eef2f7;border-radius:12px 0 0 12px}
     .mini-table td:last-child{border-right:1px solid #eef2f7;border-radius:0 12px 12px 0;text-align:right}
-    .timeline-wrap{overflow-x:auto}
-    .timeline{
-      width:100%;
-      min-width:860px;
-      border-collapse:separate;
-      border-spacing:0 8px;
-    }
-    .timeline th{
-      text-align:left;
-      color:var(--muted);
-      font-size:12px;
-      padding:0 9px;
-      white-space:nowrap;
-    }
-    .timeline td{
-      background:#f8fafc;
-      border-top:1px solid #eef2f7;
-      border-bottom:1px solid #eef2f7;
-      padding:11px 9px;
-      font-size:13px;
-      font-weight:760;
-      vertical-align:middle;
-    }
-    .timeline td:first-child{border-left:1px solid #eef2f7;border-radius:14px 0 0 14px}
-    .timeline td:last-child{border-right:1px solid #eef2f7;border-radius:0 14px 14px 0}
-    .tag{
-      display:inline-flex;
-      padding:5px 8px;
-      border-radius:999px;
-      font-size:12px;
-      font-weight:900;
-      margin-right:4px;
-      margin-bottom:4px;
-      background:#eef2ff;
-      color:#3730a3;
-    }
-    .yn-y{color:#15803d;font-weight:950}
-    .yn-n{color:#b42318;font-weight:950}
-    .status-active{color:#1d4ed8;font-weight:950}
-    .status-done{color:#475467;font-weight:950}
-    dialog{
-      width:min(620px,calc(100% - 24px));
-      border:0;
-      border-radius:26px;
-      box-shadow:0 30px 80px rgba(16,24,40,.28);
-      padding:0;
-    }
+    dialog{width:min(620px,calc(100% - 24px));border:0;border-radius:26px;box-shadow:0 30px 80px rgba(16,24,40,.28);padding:0}
     dialog::backdrop{background:rgba(15,23,42,.42);backdrop-filter:blur(3px)}
     .modal{padding:18px}
-    .modal-head{
-      display:flex;
-      justify-content:space-between;
-      align-items:flex-start;
-      gap:12px;
-      padding-bottom:14px;
-      border-bottom:1px solid var(--line);
-      margin-bottom:14px;
-    }
+    .modal-head{display:flex;justify-content:space-between;gap:12px;padding-bottom:14px;border-bottom:1px solid var(--line);margin-bottom:14px}
     .modal-head h3{margin:0 0 5px;font-size:21px;letter-spacing:-.04em}
-    .modal-head p{font-size:13px}
-    .x{
-      border:0;
-      background:#f2f4f7;
-      border-radius:999px;
-      width:36px;
-      height:36px;
-      font-size:18px;
-      cursor:pointer;
-    }
+    .x{border:0;background:#f2f4f7;border-radius:999px;width:36px;height:36px;font-size:18px;cursor:pointer}
     .form-grid{display:grid;gap:13px}
     label{display:block;font-size:13px;color:#344054;font-weight:850;margin-bottom:7px}
-    select,input,textarea{
-      width:100%;
-      border:1px solid #d0d5dd;
-      border-radius:14px;
-      padding:13px 12px;
-      font:inherit;
-      background:#fff;
-      outline:none;
-    }
-    select:focus,input:focus,textarea:focus{border-color:#84a8ff;box-shadow:0 0 0 4px rgba(37,99,235,.10)}
+    select,input,textarea{width:100%;border:1px solid #d0d5dd;border-radius:14px;padding:13px 12px;font:inherit;background:#fff;outline:none}
     textarea{min-height:84px;resize:vertical}
-    .seg{
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      border:1px solid var(--line);
-      background:#f8fafc;
-      padding:5px;
-      border-radius:16px;
-      gap:5px;
-    }
-    .seg input{display:none}
-    .seg label{
-      margin:0;
-      padding:12px;
-      text-align:center;
-      border-radius:12px;
-      cursor:pointer;
-      color:#667085;
-    }
-    .seg input:checked + label{background:#fff;color:#101828;box-shadow:0 4px 12px rgba(16,24,40,.08)}
-    .item-grid{
-      display:grid;
-      grid-template-columns:repeat(3,1fr);
-      gap:8px;
-    }
+    .item-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
     .check-chip input{display:none}
-    .check-chip span{
-      display:flex;
-      justify-content:center;
-      align-items:center;
-      min-height:42px;
-      padding:9px 8px;
-      border:1px solid #d0d5dd;
-      border-radius:14px;
-      background:#fff;
-      font-size:13px;
-      font-weight:850;
-      cursor:pointer;
-      text-align:center;
-    }
-    .check-chip input:checked + span{
-      border-color:#93c5fd;
-      background:#eff6ff;
-      color:#1d4ed8;
-      box-shadow:0 0 0 3px rgba(37,99,235,.08);
-    }
+    .check-chip span{display:block;text-align:center;border:1px solid #d0d5dd;border-radius:999px;padding:10px 9px;background:#fff;color:#344054;font-weight:800;font-size:13px;cursor:pointer}
+    .check-chip input:checked + span{background:#eff6ff;border-color:#93c5fd;color:#1d4ed8}
+    .seg{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--line);background:#f8fafc;padding:5px;border-radius:16px;gap:5px}
+    .seg input{display:none}
+    .seg label{margin:0;padding:12px;text-align:center;border-radius:12px;cursor:pointer;color:#667085}
+    .seg input:checked + label{background:#fff;color:#101828;box-shadow:0 4px 12px rgba(16,24,40,.08)}
     .modal-actions{display:grid;grid-template-columns:1fr 1.4fr;gap:10px;margin-top:16px}
-    .save{
-      border:0;
-      background:#111827;
-      color:white;
-      border-radius:16px;
-      font-weight:900;
-      font-size:16px;
-      cursor:pointer;
-      padding:14px 12px;
-    }
-    .toast{
-      position:fixed;
-      left:50%;
-      bottom:22px;
-      transform:translateX(-50%) translateY(20px);
-      opacity:0;
-      background:#111827;
-      color:#fff;
-      border-radius:999px;
-      padding:12px 16px;
-      font-size:14px;
-      font-weight:850;
-      transition:.2s ease;
-      pointer-events:none;
-      z-index:10;
-      box-shadow:0 14px 30px rgba(0,0,0,.25);
-    }
+    .save{border:0;background:#111827;color:white;border-radius:16px;font-weight:900;font-size:16px;cursor:pointer;padding:14px 12px}
+    .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(20px);opacity:0;background:#111827;color:#fff;border-radius:999px;padding:12px 16px;font-size:14px;font-weight:800;transition:.2s ease;pointer-events:none;z-index:10;box-shadow:0 14px 30px rgba(0,0,0,.25)}
     .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
-    .sync-status{
-      margin-top:12px;
-      padding:11px 13px;
-      border-radius:15px;
-      background:#f8fafc;
-      border:1px solid #e4e7ec;
-      color:#475467;
-      font-size:13px;
-      font-weight:750;
-      line-height:1.45;
-    }
-    .sync-status.ok{
-      background:#f0fdf4;
-      border-color:#bbf7d0;
-      color:#166534;
-    }
-    .sync-status.warn{
-      background:#fffbeb;
-      border-color:#fde68a;
-      color:#92400e;
-    }
-    .sync-status.err{
-      background:#fff5f5;
-      border-color:#fecaca;
-      color:#991b1b;
-    }
-    .connection-warning{
-      display:flex;
-      flex-direction:column;
-      gap:6px;
-      margin:0 0 14px;
-      padding:14px 15px;
-      border-radius:18px;
-      border:1px solid #fed7aa;
-      background:#fff7ed;
-      color:#9a3412;
-      box-shadow:0 8px 18px rgba(154,52,18,.06);
-      line-height:1.45;
-    }
-    .connection-warning strong{font-size:14px}
-    .connection-warning span{font-size:13px}
-    .connection-warning code{
-      padding:2px 6px;
-      border-radius:8px;
-      background:#ffedd5;
-      font-weight:850;
-    }
     .footer-note{color:#667085;font-size:12px;line-height:1.5;text-align:center;margin-top:18px}
     @media (max-width:760px){
-      .wrap{padding:18px 12px 30px}
-      header{display:block}
-      .top-pills{justify-content:flex-start;margin-top:12px}
-      h1{font-size:24px}
-      .grid{grid-template-columns:repeat(2,1fr)}
-      .summary{grid-template-columns:1fr}
-      .visit-card{grid-template-columns:1fr}
-      .visit-actions{display:grid;grid-template-columns:1fr 1fr}
-      .visit-actions button{width:100%}
-      .sub-actions{grid-template-columns:1fr}
-      .big-button{font-size:23px}
+      .wrap{padding:18px 12px 28px} header{display:block} .pill{display:inline-flex;margin-top:12px}
+      h1{font-size:24px} .grid{grid-template-columns:repeat(2,1fr)} .summary{grid-template-columns:1fr}
+      .visit-card,.timeline-row{grid-template-columns:1fr} .visit-card button{width:100%}
+      .sub-actions{grid-template-columns:1fr} .big-button{font-size:23px} .modal-actions{grid-template-columns:1fr}
       .item-grid{grid-template-columns:repeat(2,1fr)}
-      .modal-actions{grid-template-columns:1fr}
     }
   </style>
 </head>
@@ -426,14 +87,11 @@
   <div class="wrap">
     <header>
       <div>
+        <div class="branch-badge">롯데하이마트 <strong>삼천포점</strong></div>
         <h1>방문고객 기록</h1>
-        <p>입점 등록 → 퇴점 처리 → 상담 품목·구매 여부·미구매 사유 기록</p>
+        <p>입점 등록 → 퇴점 처리 → 상담품목·구매여부·미구매사유 기록</p>
       </div>
-      <div class="top-pills">
-        <div class="pill" id="todayLabel">오늘</div>
-        <div class="pill" id="branchLabel">삼천포점</div>
-        <div class="pill" id="modeLabel">연결 확인 중</div>
-      </div>
+      <div class="pill" id="modeLabel">연결 확인 중</div>
     </header>
 
     <section class="hero">
@@ -446,35 +104,18 @@
       <div class="sync-status" id="syncStatus">연결 상태 확인 중입니다.</div>
     </section>
 
-    <div class="connection-warning" id="connectionWarning" style="display:none">
-      <strong>미리보기에서는 외부 연결을 차단했습니다.</strong>
-      <span>ChatGPT 안에서 파일을 미리보기하면 네트워크 허용 팝업이 반복될 수 있어 연결을 막았습니다. GitHub Pages 주소에서 접속하면 Google Sheets에 정상 누적됩니다.</span>
-    </div>
-
-    <section class="grid" aria-label="오늘 요약">
-      <div class="stat">
-        <div class="label">오늘 입점</div>
-        <div class="value" id="totalVisits">0</div>
-      </div>
-      <div class="stat">
-        <div class="label">퇴점 완료</div>
-        <div class="value" id="closedVisits">0</div>
-      </div>
-      <div class="stat">
-        <div class="label">구매</div>
-        <div class="value" id="soldVisits">0</div>
-      </div>
-      <div class="stat">
-        <div class="label">전환율</div>
-        <div class="value" id="conversionRate">0%</div>
-      </div>
+    <section class="grid">
+      <div class="stat"><div class="label">오늘 방문</div><div class="value" id="totalVisits">0</div></div>
+      <div class="stat"><div class="label">퇴점 완료</div><div class="value" id="closedVisits">0</div></div>
+      <div class="stat"><div class="label">구매</div><div class="value" id="soldVisits">0</div></div>
+      <div class="stat"><div class="label">전환율</div><div class="value" id="conversionRate">0%</div></div>
     </section>
 
     <section class="section">
       <div class="section-head">
         <div>
           <h2>현재 매장 방문 중</h2>
-          <div class="hint">실수로 입점을 눌렀다면 ‘입점 취소’를 누르면 됩니다.</div>
+          <div class="hint">퇴점 시 해당 방문 건의 ‘퇴점 처리’를 눌러주세요.</div>
         </div>
         <span class="badge" id="activeBadge">0명</span>
       </div>
@@ -485,33 +126,17 @@
       <div class="section-head">
         <div>
           <h2>오늘 입점·퇴점 타임라인</h2>
-          <div class="hint">입점 시간과 퇴점 시간을 한 줄로 확인합니다. Google Sheets 연결 시 같은 데이터가 시트에도 자동 누적됩니다.</div>
+          <div class="hint">모든 기기에서 같은 Google Sheets 데이터를 기준으로 표시됩니다.</div>
         </div>
       </div>
-      <div class="timeline-wrap">
-        <table class="timeline">
-          <thead>
-            <tr>
-              <th>구분</th>
-              <th>입점</th>
-              <th>퇴점</th>
-              <th>체류</th>
-              <th>상담품목</th>
-              <th>구매</th>
-              <th>미구매사유</th>
-              <th>상태</th>
-            </tr>
-          </thead>
-          <tbody id="timelineBody"></tbody>
-        </table>
-      </div>
+      <div class="timeline" id="timeline"></div>
     </section>
 
     <section class="section">
       <div class="section-head">
         <div>
           <h2>오늘 누적 현황</h2>
-          <div class="hint">미구매 사유와 상담 품목을 자동 집계합니다.</div>
+          <div class="hint">미구매 사유와 상담품목 집계입니다.</div>
         </div>
       </div>
       <div class="summary">
@@ -523,17 +148,14 @@
         </div>
         <div>
           <table class="mini-table">
-            <thead><tr><th>상담 품목</th><th>건수</th></tr></thead>
+            <thead><tr><th>상담품목</th><th>건수</th></tr></thead>
             <tbody id="itemTable"></tbody>
           </table>
         </div>
       </div>
     </section>
 
-    <p class="footer-note">
-      v12는 Google Sheets를 기준으로 모든 기기의 입점·퇴점 기록을 하나로 누적합니다.<br>
-      API_URL을 입력하지 않으면 기기별 로컬 저장을 사용하지 않고, 저장 버튼을 막습니다.
-    </p>
+    <p class="footer-note">v13 · Google Sheets 실시간 누적형</p>
   </div>
 
   <dialog id="checkoutDialog">
@@ -562,10 +184,10 @@
         <div>
           <label>구매 여부</label>
           <div class="seg">
-            <input type="radio" id="saleYes" name="sale" value="Y" checked>
-            <label for="saleYes">Y 구매</label>
-            <input type="radio" id="saleNo" name="sale" value="N">
-            <label for="saleNo">N 미구매</label>
+            <input type="radio" id="saleYes" name="sale" value="Y" checked />
+            <label for="saleYes">구매 Y</label>
+            <input type="radio" id="saleNo" name="sale" value="N" />
+            <label for="saleNo">미구매 N</label>
           </div>
         </div>
 
@@ -596,7 +218,7 @@
 
         <div>
           <label for="memo">메모</label>
-          <textarea id="memo" placeholder="재방문 예정, 고객 요청사항, 비교 모델 등"></textarea>
+          <textarea id="memo" placeholder="상담 내용, 재방문 예정일, 고객 요청사항 등"></textarea>
         </div>
       </div>
 
@@ -610,97 +232,91 @@
   <div class="toast" id="toast">저장되었습니다.</div>
 
   <script>
-    /*
-     * Google Apps Script 웹 앱 URL.
-     * 여러 기기에서 하나로 누적하려면 이 주소가 반드시 들어가 있어야 합니다.
-     * ChatGPT/로컬 미리보기에서는 외부 연결을 막고, 실제 배포된 HTTPS 페이지에서만 연결합니다.
-     */
     const API_URL = "https://script.google.com/macros/s/AKfycbyyPuRiOFse26c4Si6p1YTYJlsAd7x88PpQeJAUFyKr6zmz5pczTnHE0ilo3qarMmnW/exec";
-    function isConnected(){
+    const BRANCH_NAME = "삼천포점";
+    const itemOptions = ["TV","냉장고","김치냉장고","세탁기/건조기","에어컨","선풍기","청소기","로봇청소기","정수기","의류관리기","휴대폰","PC/IT","생활가전","기타"];
+
+    let state = {
+      branch: BRANCH_NAME,
+      records: [],
+      active: [],
+      summary: { total:0, closed:0, sold:0, conversion:0, reasonCounts:{}, itemCounts:{} }
+    };
+
+    const $ = (id) => document.getElementById(id);
+
+    function isConnected() {
       return API_URL && API_URL.startsWith("https://script.google.com/");
     }
 
-    function isPreviewOrLocalPage(){
+    function isPreviewOrLocalPage() {
       const host = window.location.hostname || "";
       const protocol = window.location.protocol || "";
-
-      if(protocol === "file:" || protocol === "blob:") return true;
-      if(host.includes("chatgpt.com")) return true;
-      if(host.includes("openai.com")) return true;
-      if(host.includes("sandbox")) return true;
-      if(host === "localhost" || host === "127.0.0.1") return true;
-
+      if (protocol === "file:" || protocol === "blob:") return true;
+      if (host.includes("chatgpt.com")) return true;
+      if (host.includes("openai.com")) return true;
+      if (host.includes("sandbox")) return true;
+      if (host === "localhost" || host === "127.0.0.1") return true;
       return false;
     }
 
-    function canUseNetwork(){
+    function canUseNetwork() {
       return isConnected() && !isPreviewOrLocalPage();
     }
 
-    const BRANCH_NAME = "삼천포점";
-    const LOCAL_KEY = "himart_visitor_tracker_v12";
-
-    const itemOptions = [
-      "냉장고","김치냉장고","세탁건조기","의류관리기","정수기",
-      "에어컨","TV","로봇청소기","청소기","선풍기",
-      "휴대폰","PC/IT","생활가전","기타"
-    ];
-
-    const $ = (id) => document.getElementById(id);
-    let state = { records: [], active: [], summary: {}, branch: BRANCH_NAME };
-
-    function pad(n){ return String(n).padStart(2,"0"); }
-    function nowISO(){ return new Date().toISOString(); }
-    function todayKey(){
+    function pad(n) { return String(n).padStart(2, "0"); }
+    function todayKey() {
       const d = new Date();
       return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
     }
-    function formatDateLabel(){
-      const d = new Date();
-      return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
-    }
-    function formatClock(iso){
-      if(!iso) return "";
+    function nowISO() { return new Date().toISOString(); }
+
+    function formatClock(iso) {
+      if (!iso) return "";
       const d = new Date(iso);
-      if(Number.isNaN(d.getTime())) return "";
+      if (Number.isNaN(d.getTime())) return "";
       return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
     }
-    function formatDateTime(iso){
-      if(!iso) return "";
-      const d = new Date(iso);
-      if(Number.isNaN(d.getTime())) return "";
-      return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+
+    function formatDateLabel(dateKey) {
+      const parts = String(dateKey || todayKey()).split("-");
+      if (parts.length !== 3) return dateKey || "";
+      return `${parts[1]}월 ${parts[2]}일`;
     }
-    function durationText(startISO, endISO){
-      if(!startISO) return "";
-      const start = new Date(startISO).getTime();
-      const end = endISO ? new Date(endISO).getTime() : Date.now();
-      if(Number.isNaN(start) || Number.isNaN(end) || end < start) return "";
-      const min = Math.max(0, Math.round((end - start) / 60000));
-      const h = Math.floor(min / 60);
-      const m = min % 60;
-      return h ? `${h}시간 ${m}분` : `${m}분`;
+
+    function durationText(startIso, endIso) {
+      if (!startIso || !endIso) return "";
+      const s = new Date(startIso).getTime();
+      const e = new Date(endIso).getTime();
+      if (!s || !e || e < s) return "";
+      const mins = Math.round((e - s) / 60000);
+      if (mins < 60) return `${mins}분`;
+      return `${Math.floor(mins / 60)}시간 ${mins % 60}분`;
     }
-    function showToast(text){
+
+    function showToast(text) {
       const toast = $("toast");
       toast.textContent = text;
       toast.classList.add("show");
       setTimeout(() => toast.classList.remove("show"), 1500);
     }
-    function setStatus(type, text){
+
+    function setStatus(type, text) {
       const el = $("syncStatus");
-      if(!el) return;
       el.className = `sync-status ${type || ""}`.trim();
       el.textContent = text;
     }
-    function setLoading(isLoading){
-      ["checkInBtn","refreshBtn","exportCsvBtn","resetTodayBtn"].forEach(id => $(id).disabled = isLoading);
+
+    function setLoading(isLoading) {
+      ["checkInBtn","refreshBtn","exportCsvBtn","resetTodayBtn"].forEach(id => {
+        const el = $(id);
+        if (el) el.disabled = isLoading;
+      });
     }
 
-    function jsonp(action, params = {}){
+    function jsonp(action, params = {}) {
       return new Promise((resolve, reject) => {
-        const callback = `__visitorCb_${Date.now()}_${Math.random().toString(16).slice(2)}`;
-        const script = document.createElement("script");
+        const callback = "cb_" + Date.now() + "_" + Math.random().toString(16).slice(2);
         const url = new URL(API_URL);
 
         url.searchParams.set("callback", callback);
@@ -709,30 +325,40 @@
         url.searchParams.set("_t", Date.now());
 
         Object.entries(params).forEach(([key, value]) => {
-          if(Array.isArray(value)) value = value.join("|");
-          url.searchParams.set(key, value ?? "");
+          if (Array.isArray(value)) url.searchParams.set(key, value.join("|"));
+          else url.searchParams.set(key, value ?? "");
         });
 
-        const timer = setTimeout(() => {
-          cleanup();
-          reject(new Error("Apps Script 응답 시간이 초과되었습니다. 배포 권한 또는 웹 앱 URL을 확인해주세요."));
-        }, 20000);
+        const script = document.createElement("script");
+        let done = false;
 
-        function cleanup(){
-          clearTimeout(timer);
+        function cleanup() {
           delete window[callback];
           script.remove();
         }
 
-        window[callback] = (res) => {
+        const timer = setTimeout(() => {
+          if (done) return;
+          done = true;
           cleanup();
-          if(res && res.ok) resolve(res);
-          else reject(new Error((res && res.error) || "API 오류가 발생했습니다."));
+          reject(new Error("Apps Script 응답 시간이 초과되었습니다. 웹앱 배포 권한을 확인해주세요."));
+        }, 20000);
+
+        window[callback] = (res) => {
+          if (done) return;
+          done = true;
+          clearTimeout(timer);
+          cleanup();
+          if (!res || !res.ok) reject(new Error(res?.error || "Apps Script 연결에 실패했습니다."));
+          else resolve(res);
         };
 
         script.onerror = () => {
+          if (done) return;
+          done = true;
+          clearTimeout(timer);
           cleanup();
-          reject(new Error("Apps Script 연결에 실패했습니다."));
+          reject(new Error("Apps Script 연결에 실패했습니다. 웹앱 URL 또는 액세스 권한을 확인해주세요."));
         };
 
         script.async = true;
@@ -741,119 +367,13 @@
       });
     }
 
-    function getLocalRecords(){
-      try { return JSON.parse(localStorage.getItem(LOCAL_KEY) || "[]"); }
-      catch(e){ return []; }
-    }
-    function saveLocalRecords(records){
-      localStorage.setItem(LOCAL_KEY, JSON.stringify(records));
-    }
-    function localSummary(){
-      const records = getLocalRecords()
-        .filter(r => r.date === todayKey() && r.status !== "취소")
-        .sort((a,b) => new Date(a.checkInAt) - new Date(b.checkInAt));
-
-      const active = records.filter(r => r.status === "방문중");
-      const closed = records.filter(r => r.status === "퇴점완료").length;
-      const sold = records.filter(r => r.purchaseYN === "Y").length;
-      const reasonCounts = {};
-      const itemCounts = {};
-
-      records.forEach(r => {
-        (r.items || []).forEach(item => {
-          itemCounts[item] = (itemCounts[item] || 0) + 1;
-        });
-        if(r.purchaseYN === "N"){
-          const key = r.reason === "기타" && r.otherReason ? `기타: ${r.otherReason}` : r.reason;
-          if(key) reasonCounts[key] = (reasonCounts[key] || 0) + 1;
-        }
-      });
-
-      return {
-        ok:true,
-        data:{
-          branch:BRANCH_NAME,
-          records,
-          active,
-          summary:{
-            total:records.length,
-            closed,
-            sold,
-            conversion: closed ? Math.round((sold / closed) * 100) : 0,
-            reasonCounts,
-            itemCounts
-          }
-        }
-      };
-    }
-    function localApi(action, params = {}){
-      const records = getLocalRecords();
-
-      if(action === "checkin"){
-        const todayAll = records.filter(r => r.date === todayKey());
-        const visitNo = todayAll.length + 1;
-        records.push({
-          id:`local-${Date.now()}-${Math.random().toString(16).slice(2)}`,
-          date:todayKey(),
-          visitNo,
-          branch:BRANCH_NAME,
-          checkInAt:nowISO(),
-          checkOutAt:"",
-          status:"방문중",
-          items:[],
-          purchaseYN:"",
-          reason:"",
-          otherReason:"",
-          memo:""
-        });
-        saveLocalRecords(records);
-        return Promise.resolve({ok:true});
-      }
-
-      if(action === "cancel"){
-        const idx = records.findIndex(r => r.id === params.id);
-        if(idx >= 0 && records[idx].status === "방문중"){
-          records[idx].status = "취소";
-          saveLocalRecords(records);
-        }
-        return Promise.resolve({ok:true});
-      }
-
-      if(action === "checkout"){
-        const idx = records.findIndex(r => r.id === params.id);
-        if(idx >= 0){
-          records[idx] = {
-            ...records[idx],
-            checkOutAt:nowISO(),
-            status:"퇴점완료",
-            items:params.items || [],
-            purchaseYN:params.purchaseYN,
-            reason:params.purchaseYN === "N" ? params.reason : "",
-            otherReason:params.purchaseYN === "N" ? params.otherReason : "",
-            memo:params.memo || ""
-          };
-          saveLocalRecords(records);
-        }
-        return Promise.resolve({ok:true});
-      }
-
-      if(action === "summary"){
-        return Promise.resolve(localSummary());
-      }
-
-      return Promise.reject(new Error("알 수 없는 로컬 액션입니다."));
-    }
-    function api(action, params = {}){
-      if(!isConnected()){
-        return Promise.reject(new Error("API_URL이 비어 있습니다. Google Apps Script 웹 앱 URL을 index.html에 입력해야 여러 기기에서 누적됩니다."));
-      }
-      if(isPreviewOrLocalPage()){
-        return Promise.reject(new Error("ChatGPT 미리보기나 로컬 파일에서는 외부 연결을 막았습니다. GitHub Pages 주소에서 접속하면 정상 작동합니다."));
-      }
+    async function api(action, params = {}) {
+      if (!isConnected()) throw new Error("API_URL이 비어 있거나 잘못되었습니다.");
+      if (isPreviewOrLocalPage()) throw new Error("미리보기/로컬 파일에서는 저장을 막았습니다. GitHub Pages 주소에서 테스트해주세요.");
       return jsonp(action, params);
     }
 
-    function buildItemGrid(){
+    function buildItemGrid() {
       const grid = $("itemGrid");
       grid.innerHTML = "";
       itemOptions.forEach(item => {
@@ -862,7 +382,7 @@
         label.innerHTML = `<input type="checkbox" name="items" value="${item}"><span>${item}</span>`;
         label.querySelector("input").addEventListener("change", (e) => {
           const checked = [...document.querySelectorAll("input[name='items']:checked")];
-          if(checked.length > 5){
+          if (checked.length > 5) {
             e.target.checked = false;
             showToast("상담품목은 최대 5개까지 선택 가능합니다.");
           }
@@ -872,38 +392,55 @@
       });
     }
 
-    async function refresh(){
-      if(!canUseNetwork()){
-        state = {
-          branch: BRANCH_NAME,
-          records: [],
-          active: [],
-          summary: { total:0, closed:0, sold:0, conversion:0, reasonCounts:{}, itemCounts:{} }
-        };
+    function syncOtherItem() {
+      const selected = [...document.querySelectorAll("input[name='items']:checked")].map(input => input.value);
+      const isOther = selected.includes("기타");
+      $("otherItemWrap").style.display = isOther ? "block" : "none";
+      $("otherItem").required = isOther;
+      if (!isOther) $("otherItem").value = "";
+    }
+
+    function syncSaleFields() {
+      const purchaseYN = document.querySelector("input[name='sale']:checked").value;
+      const isNo = purchaseYN === "N";
+      $("reasonWrap").style.display = isNo ? "block" : "none";
+      $("reason").required = isNo;
+      syncOtherReason();
+    }
+
+    function syncOtherReason() {
+      const purchaseYN = document.querySelector("input[name='sale']:checked").value;
+      const isNo = purchaseYN === "N";
+      const isOther = $("reason").value === "기타";
+      $("otherReasonWrap").style.display = isNo && isOther ? "block" : "none";
+      $("otherReason").required = isNo && isOther;
+      if (!isOther) $("otherReason").value = "";
+    }
+
+    async function refresh() {
+      if (!canUseNetwork()) {
         render();
-        setStatus("warn", "GitHub Pages 주소가 아니거나 외부 연결이 차단된 상태입니다. 실제 GitHub Pages 주소에서 테스트해주세요.");
+        setStatus("warn", "GitHub Pages 주소에서 접속해야 Google Sheets에 저장됩니다.");
         return;
       }
 
-      try{
+      try {
         setLoading(true);
         setStatus("warn", "Google Sheets 데이터를 불러오는 중입니다.");
         const res = await api("summary");
         state = res.data;
         render();
-        const activeCount = (state.active || []).length;
-        setStatus("ok", `Google Sheets 연결 완료. 현재 매장 방문 중 ${activeCount}명`);
-      }catch(err){
+        setStatus("ok", `Google Sheets 연결 완료. 현재 매장 방문 중 ${(state.active || []).length}명`);
+      } catch (err) {
         setStatus("err", "연결 실패: " + err.message);
-        alert(err.message);
-      }finally{
+      } finally {
         setLoading(false);
       }
     }
-    async function checkIn(){
-      if(!canUseNetwork()){
-        setStatus("err", "저장 불가: GitHub Pages 주소에서 접속했는지 확인해주세요.");
-        alert("ChatGPT 미리보기나 로컬 파일에서는 저장을 막았습니다. GitHub Pages 주소에서 접속하면 Google Sheets에 정상 누적됩니다.");
+
+    async function checkIn() {
+      if (!canUseNetwork()) {
+        alert("GitHub Pages 주소에서 접속해야 Google Sheets에 저장됩니다.");
         return;
       }
 
@@ -924,81 +461,46 @@
         syncing: true
       };
 
-      // 먼저 화면에 즉시 표시
       state.records = [...(state.records || []), tempRecord];
       state.active = [...(state.active || []), tempRecord];
-      state.summary = {
-        ...(state.summary || {}),
-        total: (state.summary?.total || 0) + 1
-      };
+      state.summary.total = (state.summary?.total || 0) + 1;
       render();
-      showToast("입점 등록 중입니다.");
-      setStatus("warn", "입점 기록을 Google Sheets에 저장하고, 실제 반영 여부를 확인하는 중입니다.");
+      setStatus("warn", "입점 기록을 Google Sheets에 저장 중입니다.");
 
-      try{
+      try {
         setLoading(true);
-        const res = await api("checkin", { userAgent:navigator.userAgent });
-        const data = res?.data || {};
+        const res = await api("checkin", { userAgent: navigator.userAgent });
+        const data = res.data;
 
-        if(!data.persisted){
-          throw new Error(data.message || "Apps Script가 저장 성공을 확인하지 못했습니다. 배포 버전과 SPREADSHEET_ID를 확인해주세요.");
+        if (!data.persisted) {
+          throw new Error("Apps Script가 저장 성공을 확인하지 못했습니다.");
         }
 
-        if(data.summary && Array.isArray(data.summary.records)){
-          state = data.summary;
-          render();
-        }else if(data.record){
-          const actual = data.record;
-          state.records = (state.records || []).map(r => r.id === tempId ? actual : r);
-          state.active = (state.active || []).map(r => r.id === tempId ? actual : r);
-          render();
-        }else{
-          await refresh();
-        }
-
-        const activeCount = (state.active || []).length;
-        showToast(`입점 ${data.visitNo || ""}번 등록 완료`);
-        setStatus("ok", `Google Sheets 저장 확인 완료. 현재 매장 방문 중 ${activeCount}명`);
-      }catch(err){
-        // 저장이 실제 확인되지 않으면 화면에서도 제거
+        state = data.summary;
+        render();
+        setStatus("ok", `입점 ${data.visitNo}번 저장 완료. 현재 매장 방문 중 ${(state.active || []).length}명`);
+        showToast(`입점 ${data.visitNo}번 등록 완료`);
+      } catch (err) {
         state.records = (state.records || []).filter(r => r.id !== tempId);
         state.active = (state.active || []).filter(r => r.id !== tempId);
-        state.summary = {
-          ...(state.summary || {}),
-          total: Math.max(0, (state.summary?.total || 1) - 1)
-        };
+        state.summary.total = Math.max(0, (state.summary?.total || 1) - 1);
         render();
         setStatus("err", "입점 등록 실패: " + err.message);
         alert("입점 등록 실패: " + err.message);
-      }finally{
-        setLoading(false);
-      }
-    }
-    async function cancelVisit(id){
-      if(!canUseNetwork()){
-        alert("ChatGPT 미리보기에서는 저장을 막았습니다. GitHub Pages 주소에서 접속하면 정상 작동합니다.");
-        return;
-      }
-      if(!confirm("실수로 등록한 입점을 취소할까요?")) return;
-      try{
-        setLoading(true);
-        await api("cancel", { id });
-        await refresh();
-        showToast("입점 취소 완료");
-      }catch(err){
-        alert(err.message);
-      }finally{
+      } finally {
         setLoading(false);
       }
     }
 
-    function openCheckout(id){
-      const record = state.records.find(r => r.id === id);
-      if(!record) return;
+    function openCheckout(id) {
+      const record = (state.records || []).find(r => r.id === id);
+      if (!record || record.syncing) {
+        showToast("저장 완료 후 퇴점 처리할 수 있습니다.");
+        return;
+      }
 
       $("selectedVisitId").value = id;
       $("checkoutSub").textContent = `방문 ${record.visitNo}번 · 입점 ${formatClock(record.checkInAt)}`;
-
       document.querySelectorAll("input[name='items']").forEach(input => input.checked = false);
       $("saleYes").checked = true;
       $("otherItem").value = "";
@@ -1007,40 +509,15 @@
       $("memo").value = "";
       syncOtherItem();
       syncSaleFields();
-
       $("checkoutDialog").showModal();
     }
-    function closeCheckout(){
+
+    function closeCheckout() {
       $("checkoutDialog").close();
     }
-    function syncOtherItem(){
-      const selected = [...document.querySelectorAll("input[name='items']:checked")].map(input => input.value);
-      const isOther = selected.includes("기타");
-      $("otherItemWrap").style.display = isOther ? "block" : "none";
-      $("otherItem").required = isOther;
-      if(!isOther) $("otherItem").value = "";
-    }
 
-    function syncSaleFields(){
-      const sale = document.querySelector("input[name='sale']:checked").value;
-      const isNo = sale === "N";
-      $("reasonWrap").style.display = isNo ? "block" : "none";
-      $("reason").required = isNo;
-      syncOtherReason();
-    }
-    function syncOtherReason(){
-      const sale = document.querySelector("input[name='sale']:checked").value;
-      const isOther = $("reason").value === "기타";
-      $("otherReasonWrap").style.display = sale === "N" && isOther ? "block" : "none";
-      $("otherReason").required = sale === "N" && isOther;
-    }
-    async function submitCheckout(event){
+    async function submitCheckout(event) {
       event.preventDefault();
-
-      if(!canUseNetwork()){
-        alert("ChatGPT 미리보기에서는 저장을 막았습니다. GitHub Pages 주소에서 접속하면 정상 작동합니다.");
-        return;
-      }
 
       const id = $("selectedVisitId").value;
       const selectedItems = [...document.querySelectorAll("input[name='items']:checked")].map(input => input.value);
@@ -1050,26 +527,14 @@
       const reason = purchaseYN === "N" ? $("reason").value : "";
       const otherReason = reason === "기타" ? $("otherReason").value.trim() : "";
 
-      if(selectedItems.length === 0){
-        alert("상담한 품목을 1개 이상 선택해주세요.");
-        return;
-      }
-      if(selectedItems.includes("기타") && !otherItem){
-        alert("기타 상담품목을 직접 작성해주세요.");
-        return;
-      }
-      if(purchaseYN === "N" && !reason){
-        alert("미구매 사유를 선택해주세요.");
-        return;
-      }
-      if(reason === "기타" && !otherReason){
-        alert("기타 사유를 직접 작성해주세요.");
-        return;
-      }
+      if (selectedItems.length === 0) return alert("상담한 품목을 1개 이상 선택해주세요.");
+      if (selectedItems.includes("기타") && !otherItem) return alert("기타 상담품목을 직접 작성해주세요.");
+      if (purchaseYN === "N" && !reason) return alert("미구매 사유를 선택해주세요.");
+      if (reason === "기타" && !otherReason) return alert("기타 사유를 직접 작성해주세요.");
 
-      try{
+      try {
         setLoading(true);
-        await api("checkout", {
+        const res = await api("checkout", {
           id,
           items,
           purchaseYN,
@@ -1077,24 +542,63 @@
           otherReason,
           memo: $("memo").value.trim()
         });
+        state = res.data;
+        render();
         closeCheckout();
-        await refresh();
+        setStatus("ok", "퇴점 저장 완료");
         showToast("퇴점 저장 완료");
-      }catch(err){
-        alert(err.message);
-      }finally{
+      } catch (err) {
+        setStatus("err", "퇴점 저장 실패: " + err.message);
+        alert("퇴점 저장 실패: " + err.message);
+      } finally {
         setLoading(false);
       }
     }
 
-    function renderActive(){
+    async function cancelVisit(id) {
+      if (!confirm("실수로 등록한 입점을 취소할까요?")) return;
+      try {
+        setLoading(true);
+        const res = await api("cancel", { id });
+        state = res.data;
+        render();
+        setStatus("ok", "입점 취소 완료");
+        showToast("입점 취소 완료");
+      } catch (err) {
+        setStatus("err", "입점 취소 실패: " + err.message);
+        alert("입점 취소 실패: " + err.message);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    async function resetToday() {
+      const first = confirm("오늘 기록을 전체 초기화할까요?\n모든 기기에서 오늘 누적 기록이 사라집니다.");
+      if (!first) return;
+      const keyword = prompt("실수 방지를 위해 '초기화'라고 입력해주세요.");
+      if (keyword !== "초기화") return showToast("초기화가 취소되었습니다.");
+
+      try {
+        setLoading(true);
+        const res = await api("resetToday");
+        state = res.data;
+        render();
+        setStatus("ok", "오늘 기록 전체 초기화 완료");
+      } catch (err) {
+        setStatus("err", "초기화 실패: " + err.message);
+        alert("초기화 실패: " + err.message);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    function renderActive() {
       const active = state.active || [];
       $("activeBadge").textContent = `${active.length}명`;
-
       const list = $("activeList");
       list.innerHTML = "";
 
-      if(active.length === 0){
+      if (active.length === 0) {
         list.innerHTML = `<div class="empty">현재 방문 중인 고객 기록이 없습니다.</div>`;
         return;
       }
@@ -1104,63 +608,54 @@
         el.className = "visit-card";
         el.innerHTML = `
           <div>
-            <strong>방문 ${r.visitNo}번</strong>
-            <span>입점 ${formatClock(r.checkInAt)} · 현재 체류 ${durationText(r.checkInAt, "")}</span>
+            <strong>방문 ${r.visitNo}번${r.syncing ? " · 저장 중" : ""}</strong>
+            <span>입점 시간 ${formatClock(r.checkInAt)}</span>
           </div>
-          <div class="visit-actions">
-            <button class="warning" type="button" data-cancel="${r.id}">입점 취소</button>
-            <button class="success" type="button" data-checkout="${r.id}">퇴점 처리</button>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="success" type="button" ${r.syncing ? "disabled" : ""}>퇴점 처리</button>
+            <button class="danger" type="button" ${r.syncing ? "disabled" : ""}>입점 취소</button>
           </div>
         `;
-        el.querySelector("[data-cancel]").addEventListener("click", () => cancelVisit(r.id));
-        el.querySelector("[data-checkout]").addEventListener("click", () => openCheckout(r.id));
+        el.querySelector(".success").addEventListener("click", () => openCheckout(r.id));
+        el.querySelector(".danger").addEventListener("click", () => cancelVisit(r.id));
         list.appendChild(el);
       });
     }
 
-    function renderTimeline(){
-      const body = $("timelineBody");
+    function renderTimeline() {
+      const timeline = $("timeline");
       const records = state.records || [];
-      body.innerHTML = "";
+      timeline.innerHTML = "";
 
-      if(records.length === 0){
-        body.innerHTML = `<tr><td colspan="8" class="empty">오늘 기록이 없습니다.</td></tr>`;
+      if (records.length === 0) {
+        timeline.innerHTML = `<div class="empty">오늘 기록이 없습니다.</div>`;
         return;
       }
 
-      records.forEach(r => {
-        const items = (r.items || []).map(item => `<span class="tag">${item}</span>`).join("");
-        const reason = r.purchaseYN === "N"
-          ? (r.reason === "기타" && r.otherReason ? `기타: ${r.otherReason}` : r.reason)
-          : "";
-        const ynClass = r.purchaseYN === "Y" ? "yn-y" : (r.purchaseYN === "N" ? "yn-n" : "");
-        const statusClass = r.status === "방문중" ? "status-active" : "status-done";
-
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td>${r.visitNo}</td>
-          <td>${formatClock(r.checkInAt)}</td>
-          <td>${r.checkOutAt ? formatClock(r.checkOutAt) : "-"}</td>
-          <td>${durationText(r.checkInAt, r.checkOutAt)}</td>
-          <td>${items || "-"}</td>
-          <td class="${ynClass}">${r.purchaseYN || "-"}</td>
-          <td>${reason || "-"}</td>
-          <td class="${statusClass}">${r.status}</td>
+      records.slice().reverse().forEach(r => {
+        const items = (r.items || []).join(" / ");
+        const reason = r.purchaseYN === "N" ? (r.reason === "기타" && r.otherReason ? `기타: ${r.otherReason}` : r.reason) : "";
+        const el = document.createElement("div");
+        el.className = "timeline-row";
+        el.innerHTML = `
+          <div>
+            <strong>방문 ${r.visitNo}번 · ${r.status}</strong>
+            <span>입점 ${formatClock(r.checkInAt)}${r.checkOutAt ? " · 퇴점 " + formatClock(r.checkOutAt) : ""}${durationText(r.checkInAt, r.checkOutAt) ? " · 체류 " + durationText(r.checkInAt, r.checkOutAt) : ""}</span>
+            <span style="display:block;margin-top:4px">${items || "상담품목 미입력"} ${r.purchaseYN ? " · 구매 " + r.purchaseYN : ""} ${reason ? " · " + reason : ""}</span>
+          </div>
         `;
-        body.appendChild(tr);
+        timeline.appendChild(el);
       });
     }
 
-    function renderCountTable(tbodyId, countMap, emptyText){
+    function renderTable(tbodyId, obj, emptyText) {
       const tbody = $(tbodyId);
-      const rows = Object.entries(countMap || {}).sort((a,b) => b[1] - a[1]);
+      const rows = Object.entries(obj || {}).sort((a,b) => b[1] - a[1]);
       tbody.innerHTML = "";
-
-      if(rows.length === 0){
+      if (rows.length === 0) {
         tbody.innerHTML = `<tr><td>${emptyText}</td><td>0</td></tr>`;
         return;
       }
-
       rows.forEach(([name, count]) => {
         const tr = document.createElement("tr");
         tr.innerHTML = `<td>${name}</td><td>${count}</td>`;
@@ -1168,81 +663,50 @@
       });
     }
 
-    function renderSummary(){
+    function renderSummary() {
       const s = state.summary || {};
       $("totalVisits").textContent = s.total || 0;
       $("closedVisits").textContent = s.closed || 0;
       $("soldVisits").textContent = s.sold || 0;
       $("conversionRate").textContent = `${s.conversion || 0}%`;
-
-      renderCountTable("reasonTable", s.reasonCounts, "미구매 기록 없음");
-      renderCountTable("itemTable", s.itemCounts, "상담 기록 없음");
+      renderTable("reasonTable", s.reasonCounts, "미구매 기록 없음");
+      renderTable("itemTable", s.itemCounts, "상담 기록 없음");
     }
 
-    function render(){
-      $("todayLabel").textContent = formatDateLabel();
-      $("branchLabel").textContent = state.branch || BRANCH_NAME;
-      $("modeLabel").textContent = canUseNetwork() ? "Google Sheets 실시간 누적" : (isConnected() ? "미리보기 연결 차단" : "API URL 필요");
-      $("modeLabel").className = `pill ${canUseNetwork() ? "connected" : "local"}`;
-      $("connectionWarning").style.display = canUseNetwork() ? "none" : "flex";
-      $("resetTodayBtn").style.display = canUseNetwork() ? "block" : "none";
-      if(!canUseNetwork()) setStatus("warn", "GitHub Pages 주소에서 접속해야 Google Sheets에 저장됩니다.");
-
+    function render() {
+      $("modeLabel").textContent = canUseNetwork() ? "Google Sheets 실시간 누적" : "연결 확인 필요";
+      $("modeLabel").className = `pill ${canUseNetwork() ? "" : "err"}`;
       renderActive();
       renderTimeline();
       renderSummary();
     }
 
-    function csvEscape(value){
+    function csvEscape(value) {
       const text = String(value ?? "");
       return `"${text.replaceAll('"','""')}"`;
     }
-    function formatCsvMonthDay(dateKey){
-      const parts = String(dateKey || todayKey()).split("-");
-      if(parts.length !== 3) return dateKey || "";
-      return `${parts[1]}월 ${parts[2]}일`;
-    }
 
-    function formatCsvKoreanTime(iso){
-      if(!iso) return "";
-      const d = new Date(iso);
-      if(Number.isNaN(d.getTime())) return "";
-      return `${pad(d.getHours())}시 ${pad(d.getMinutes())}분`;
-    }
-
-    function formatCsvReason(r){
-      if(!r || r.purchaseYN !== "N") return "";
-      if(r.reason === "기타" && r.otherReason) return `기타: ${r.otherReason}`;
-      return r.reason || "";
-    }
-
-    function exportCSV(){
+    function exportCSV() {
       const records = (state.records || []).slice().sort((a,b) => new Date(a.checkInAt) - new Date(b.checkInAt));
-      const branchName = state.branch || BRANCH_NAME;
       const rowCount = Math.max(33, records.length);
-
       const rows = [
-        ["■ 시간대별 방문고객 현황", "", "", "", "", "", "", "점명 :", branchName, ""],
+        ["■ 시간대별 방문고객 현황", "", "", "", "", "", "", "점명 :", BRANCH_NAME, ""],
         ["", "", "", "", "", "", "", "", "", ""],
         ["구분", "날짜", "방문시간", "상담품목", "", "", "", "", "구매여부\n(Y/N)", "미구매사유"]
       ];
 
-      for(let i = 0; i < rowCount; i++){
+      for (let i = 0; i < rowCount; i++) {
         const r = records[i];
-        const items = r && Array.isArray(r.items) ? r.items.slice(0, 5) : [];
-        while(items.length < 5) items.push("");
-
+        const items = r && Array.isArray(r.items) ? r.items.slice(0,5) : [];
+        while (items.length < 5) items.push("");
+        const reason = r && r.purchaseYN === "N" ? (r.reason === "기타" && r.otherReason ? `기타: ${r.otherReason}` : r.reason) : "";
         rows.push([
           i + 1,
-          r ? formatCsvMonthDay(r.date) : "",
-          r ? formatCsvKoreanTime(r.checkInAt) : "",
-          items[0],
-          items[1],
-          items[2],
-          items[3],
-          items[4],
+          r ? formatDateLabel(r.date) : "",
+          r ? `${formatClock(r.checkInAt).replace(":", "시 ")}분` : "",
+          items[0], items[1], items[2], items[3], items[4],
           r ? (r.purchaseYN || "") : "",
-          r ? formatCsvReason(r) : ""
+          reason || ""
         ]);
       }
 
@@ -1251,40 +715,13 @@
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `시간대별_방문고객현황_${branchName}_${todayKey()}.csv`;
+      a.download = `시간대별_방문고객현황_${BRANCH_NAME}_${todayKey()}.csv`;
       document.body.appendChild(a);
       a.click();
       a.remove();
       URL.revokeObjectURL(url);
     }
-    async function resetToday(){
-      if(!canUseNetwork()){
-        alert("ChatGPT 미리보기에서는 초기화를 막았습니다. GitHub Pages 주소에서 접속하면 정상 작동합니다.");
-        return;
-      }
 
-      const first = confirm("오늘 기록을 전체 초기화할까요?\\n모든 기기에서 오늘 누적 기록이 사라지고, 구글시트의 오늘 행도 초기화됩니다.");
-      if(!first) return;
-
-      const keyword = prompt("실수 방지를 위해 '초기화'라고 입력해주세요.");
-      if(keyword !== "초기화"){
-        showToast("초기화가 취소되었습니다.");
-        return;
-      }
-
-      try{
-        setLoading(true);
-        await api("resetToday");
-        await refresh();
-        showToast("오늘 기록 전체 초기화 완료");
-      }catch(err){
-        alert(err.message);
-      }finally{
-        setLoading(false);
-      }
-    }
-
-    buildItemGrid();
     $("checkInBtn").addEventListener("click", checkIn);
     $("refreshBtn").addEventListener("click", refresh);
     $("exportCsvBtn").addEventListener("click", exportCSV);
@@ -1295,12 +732,11 @@
     $("saleYes").addEventListener("change", syncSaleFields);
     $("saleNo").addEventListener("change", syncSaleFields);
     $("reason").addEventListener("change", syncOtherReason);
-    $("otherItem").addEventListener("input", syncOtherItem);
 
+    buildItemGrid();
+    render();
     refresh();
-    setInterval(() => {
-      if(canUseNetwork()) refresh();
-    }, 20000);
+    setInterval(() => { if (canUseNetwork()) refresh(); }, 30000);
   </script>
 </body>
 </html>
