@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>방문고객 기록 v10</title>
+  <title>방문고객 기록 v12</title>
   <style>
     :root{
       --bg:#f4f6fb;
@@ -531,7 +531,7 @@
     </section>
 
     <p class="footer-note">
-      v10은 Google Sheets를 기준으로 모든 기기의 입점·퇴점 기록을 하나로 누적합니다.<br>
+      v12는 Google Sheets를 기준으로 모든 기기의 입점·퇴점 기록을 하나로 누적합니다.<br>
       API_URL을 입력하지 않으면 기기별 로컬 저장을 사용하지 않고, 저장 버튼을 막습니다.
     </p>
   </div>
@@ -615,7 +615,7 @@
      * 여러 기기에서 하나로 누적하려면 이 주소가 반드시 들어가 있어야 합니다.
      * ChatGPT/로컬 미리보기에서는 외부 연결을 막고, 실제 배포된 HTTPS 페이지에서만 연결합니다.
      */
-    const API_URL = "https://script.google.com/macros/s/AKfycbywGt9SILd9XCctj9cWk0lO9CoGQDOEYJKrWQfAtRSH2EWh9SLoSq8A5-qSCNTKx9WmYg/exec";
+    const API_URL = "https://script.google.com/macros/s/AKfycbyyPuRiOFse26c4Si6p1YTYJlsAd7x88PpQeJAUFyKr6zmz5pczTnHE0ilo3qarMmnW/exec";
     function isConnected(){
       return API_URL && API_URL.startsWith("https://script.google.com/");
     }
@@ -638,7 +638,7 @@
     }
 
     const BRANCH_NAME = "삼천포점";
-    const LOCAL_KEY = "himart_visitor_tracker_v10";
+    const LOCAL_KEY = "himart_visitor_tracker_v12";
 
     const itemOptions = [
       "냉장고","김치냉장고","세탁건조기","의류관리기","정수기",
